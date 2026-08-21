@@ -59,6 +59,23 @@ h2{
   margin:0 0 12px;
 }
 
+.top-clarification{
+  margin:0 0 14px;
+  padding:12px 14px;
+  background:#eef6ff;
+  border:1px solid #cfe0ff;
+  border-radius:12px;
+  font-size:.94rem;
+}
+
+.top-clarification p{
+  margin:0 0 7px;
+}
+
+.top-clarification p:last-child{
+  margin-bottom:0;
+}
+
 .concept-card{
   margin:14px 0;
   background:linear-gradient(135deg,#ffffff 0%, #f7fbff 100%);
@@ -394,6 +411,11 @@ canvas{
   <p class="lead">
     Las 12 filas son las mismas observaciones de prueba. Cada columna muestra el score o probabilidad P(1) producido por un modelo con distinta capacidad de separar las clases. Activa o desactiva cada columna para comparar sus curvas ROC.
   </p>
+
+  <div class="top-clarification">
+    <p><strong>Importante:</strong> este material usa un ejemplo <strong>balanceado</strong>: 6 casos positivos y 6 negativos, es decir, <strong>50/50</strong>.</p>
+    <p>Por eso la <strong>curva ROC</strong> se usa aquí como herramienta principal. Si hubiera desbalance, por ejemplo <strong>70/30</strong>, ya podría hablarse de <strong>desbalance leve</strong> en parte de la literatura y convendría complementar con <strong>Precision-Recall</strong>.</p>
+  </div>
 
   <section class="card concept-card">
     <h2>0. Idea conceptual antes de interactuar</h2>
