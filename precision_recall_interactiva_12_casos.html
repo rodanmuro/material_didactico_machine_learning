@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curva Precision-Recall interactiva</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--border:#dbe2ea;--accent:#0f766e;--accent-soft:#dff5f1;--good:#dff6e8;--bad:#fca5a5;--poor:#dc2626;--medium:#2563eb;--strong:#16a34a;--warn:#fff4d6}
+*{box-sizing:border-box} html,body{margin:0;width:100%;min-height:100%}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);line-height:1.42}
+.container{width:95vw;margin:0 auto;padding:18px 0 28px} h1{margin:0 0 6px;font-size:1.9rem} h2{margin:0 0 10px;font-size:1.28rem}
+.lead{margin:0 0 12px;color:var(--muted)}
+.top-clarification,.reference-note{margin:0 0 14px;padding:12px 14px;background:#edfaf7;border:1px solid #bae6dd;border-radius:12px;font-size:.94rem}
+.top-clarification p,.reference-note p{margin:0 0 7px}.top-clarification p:last-child,.reference-note p:last-child{margin-bottom:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 4px 16px rgba(0,0,0,.04)}
+.concept-card{margin:14px 0;background:linear-gradient(135deg,#fff 0%,#f4fffc 100%)}
+.concept-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.concept-box{padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff}.concept-box h3{margin:0 0 8px;font-size:1rem}.concept-box p{margin:0 0 9px}.concept-list{margin:0;padding-left:18px}.concept-list li{margin-bottom:7px}.formula{font-weight:700;color:var(--accent)}
+.controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:12px 0 14px;padding:11px 14px;background:var(--accent-soft);border-radius:10px}input[type="range"]{flex:1 1 420px;min-width:260px;max-width:760px}.threshold{min-width:62px;font-weight:bold;font-size:1.2rem;color:var(--accent)}.small{color:var(--muted);font-size:.84rem}
+.main-grid{display:grid;grid-template-columns:minmax(430px,.82fr) minmax(620px,1.18fr);gap:14px;align-items:stretch}.table-wrap{width:100%;overflow:auto;max-height:690px;border:1px solid var(--border);border-radius:10px}table{width:auto;min-width:0;border-collapse:collapse;font-size:.89rem}th,td{border-bottom:1px solid var(--border);padding:7px 6px;text-align:center;white-space:nowrap}th{background:#eef2f7;position:sticky;top:0;z-index:2;font-size:.85rem}th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){width:52px;min-width:52px}.score-head{width:122px;min-width:122px}.pred-head{width:72px;min-width:72px}.score-head label{display:flex;align-items:center;justify-content:flex-start;gap:6px;cursor:pointer;line-height:1.15;white-space:normal;text-align:left}.score-head input{width:16px;height:16px;cursor:pointer}.swatch{width:10px;height:10px;border-radius:50%;display:inline-block}.swatch.poor{background:var(--poor)}.swatch.medium{background:var(--medium)}.swatch.strong{background:var(--strong)}.prob,.pred-cell{font-variant-numeric:tabular-nums;font-weight:700}.pred-ok{background:var(--good)}.pred-bad{background:var(--bad);color:#7f1d1d}
+.chart-card{display:flex;flex-direction:column}.chart-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:5px;font-size:.82rem}.legend-item{display:inline-flex;align-items:center;gap:5px}.legend-line{width:20px;height:3px;border-radius:4px}.canvas-wrap{position:relative;width:100%;flex:1;min-height:520px}canvas{width:100%;height:100%;min-height:520px;background:#fff;border:1px solid var(--border);border-radius:10px;display:block;cursor:crosshair}.pr-tooltip{position:absolute;display:none;pointer-events:none;z-index:5;min-width:184px;padding:9px 11px;border-radius:8px;background:rgba(17,24,39,.96);color:#fff;font-size:.8rem;line-height:1.4;box-shadow:0 5px 18px rgba(0,0,0,.18)}
+.metrics-card,.steps{margin-top:14px}.metrics-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}.metrics-table{min-width:880px}.metrics-table th,.metrics-table td{padding:8px 9px}.model-name{text-align:left;font-weight:700}.ap-pill{display:inline-block;min-width:58px;padding:3px 8px;border-radius:999px;background:#e6f6f3;font-weight:700}.note{margin-top:10px;padding:10px 12px;background:var(--warn);border-radius:10px;font-size:.9rem}.steps ol{columns:2;column-gap:40px;margin-bottom:0}.steps li{break-inside:avoid;margin-bottom:6px}
+@media(max-width:1100px){.container{width:97vw}.main-grid,.concept-grid{grid-template-columns:1fr}}@media(max-width:720px){.container{width:96vw}.steps ol{columns:1}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Curva Precision-Recall: clasificación con clases desbalanceadas</h1>
+  <p class="lead">Las 12 filas son las mismas observaciones de prueba. Cada columna contiene el score P(1) de un modelo con distinta capacidad de separar la clase positiva. Activa o desactiva modelos para comparar sus curvas Precision-Recall.</p>
+
+  <div class="top-clarification">
+    <p><strong>Importante:</strong> este ejemplo tiene <strong>3 casos positivos y 9 negativos</strong>: una proporción <strong>25/75</strong>. La clase positiva es minoritaria.</p>
+    <p>En este contexto, la curva <strong>Precision-Recall</strong> es especialmente útil porque muestra directamente cuántos de los positivos predichos son realmente positivos.</p>
+  </div>
+
+  <section class="card concept-card">
+    <h2>0. Idea conceptual antes de interactuar</h2>
+    <div class="concept-grid">
+      <div class="concept-box">
+        <h3>Qué mide una curva Precision-Recall</h3>
+        <p>Un clasificador binario asigna un <strong>score</strong> a cada caso. Al variar el <strong>umbral</strong>, cambia qué casos se predicen como positivos y, por tanto, cambian las métricas.</p>
+        <p>La curva Precision-Recall representa ese intercambio: para cada umbral, compara qué proporción de los positivos reales se recupera con qué tan confiables son las predicciones positivas.</p>
+        <p class="formula">Precision-Recall = precisión frente a recall (sensibilidad)</p>
+      </div>
+      <div class="concept-box">
+        <h3>Cómo leer este material</h3>
+        <ul class="concept-list">
+          <li><strong>Precision:</strong> de los casos predichos como positivos, qué proporción sí era positiva: TP / (TP + FP).</li>
+          <li><strong>Recall:</strong> de todos los positivos reales, qué proporción fue detectada: TP / (TP + FN).</li>
+          <li><strong>Umbral alto:</strong> predice pocos positivos; suele subir la precisión, pero puede bajar el recall.</li>
+          <li><strong>Mejor curva:</strong> permanece cerca de la esquina superior derecha.</li>
+          <li><strong>AP:</strong> Average Precision resume el desempeño de la curva; un valor mayor es mejor.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="concept-box" style="margin-top:14px">
+      <h3>Por qué este ejemplo usa clases desbalanceadas</h3>
+      <p>Cuando hay muchos más negativos que positivos, un modelo puede tener una buena tasa global de aciertos e incluso una ROC atractiva, pero producir demasiados <strong>falsos positivos</strong>. Precision-Recall hace visible ese problema.</p>
+      <p>La línea punteada del gráfico corresponde a la <strong>prevalencia</strong>: aquí, 3 positivos de 12 casos = <strong>0.25</strong>. Una curva útil debería mantenerse por encima de esa referencia.</p>
+    </div>
+    <div class="reference-note">
+      <p><strong>Interpretación responsable:</strong> no existe un único porcentaje que defina todo desbalance. Sin embargo, 25/75 ya permite estudiar una clase positiva minoritaria y los efectos de los falsos positivos.</p>
+      <p>Como complemento, la curva ROC sigue siendo válida, pero la literatura recomienda observar Precision-Recall cuando el interés principal está en la clase minoritaria. La decisión final también depende del costo real de los errores.</p>
+    </div>
+  </section>
+
+  <div class="controls"><label for="threshold"><strong>Umbral:</strong></label><input id="threshold" type="range" min="0" max="1" step="0.01" value="0.50"><span id="thresholdValue" class="threshold">0.50</span><span class="small">Para cada modelo: P(1) ≥ umbral → predicción 1</span></div>
+
+  <div class="main-grid">
+    <section class="card"><h2>1. Datos de prueba</h2><div class="table-wrap"><table><thead><tr><th>Caso</th><th>Real</th><th class="score-head"><label title="Mostrar u ocultar modelo de baja discriminacion"><input type="checkbox" class="series-toggle" data-series="poor" checked><span class="swatch poor"></span>Baja discr.</label></th><th class="pred-head">Pred.</th><th class="score-head"><label title="Mostrar u ocultar modelo de discriminacion media"><input type="checkbox" class="series-toggle" data-series="medium" checked><span class="swatch medium"></span>Discr. media</label></th><th class="pred-head">Pred.</th><th class="score-head"><label title="Mostrar u ocultar modelo de alta discriminacion"><input type="checkbox" class="series-toggle" data-series="strong" checked><span class="swatch strong"></span>Alta discr.</label></th><th class="pred-head">Pred.</th></tr></thead><tbody id="dataBody"></tbody></table></div><div class="note">Cada fila representa el mismo caso. Los positivos reales están marcados con <strong>1</strong>; el valor que cambia es el score asignado por cada modelo.</div></section>
+    <section class="card chart-card"><div class="chart-header"><div><h2>2. Curvas Precision-Recall</h2><div class="small">Cada curva usa todos los umbrales posibles. El punto sólido muestra el umbral seleccionado.</div><div id="legend" class="legend"></div></div></div><div class="canvas-wrap"><canvas id="prCanvas"></canvas><div id="prTooltip" class="pr-tooltip"></div></div></section>
+  </div>
+
+  <section class="card metrics-card"><h2>3. Métricas con el umbral seleccionado</h2><div class="metrics-table-wrap"><table class="metrics-table"><thead><tr><th>Modelo</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>Precision</th><th>Recall</th><th>F1</th><th>AP</th></tr></thead><tbody id="metricsBody"></tbody></table></div></section>
+  <section class="card steps"><h2>4. Qué observar</h2><ol><li>La clase positiva representa solo el 25% de las observaciones.</li><li>Al bajar el umbral, se detectan más positivos (sube el recall), pero también pueden entrar más negativos como falsos positivos.</li><li>La precisión baja cuando el conjunto de predicciones positivas contiene muchos falsos positivos.</li><li>Un modelo de alta discriminación encuentra positivos sin incorporar tantos negativos.</li><li>AP resume la calidad de la curva completa; no depende de elegir un único umbral.</li><li>El umbral solo desplaza el punto de operación sobre la curva.</li></ol></section>
+</div>
+
+<script>
+const rows=[
+  {id:"A",real:1,poor:.72,medium:.92,strong:.96},{id:"B",real:0,poor:.68,medium:.84,strong:.52},
+  {id:"C",real:0,poor:.64,medium:.72,strong:.45},{id:"D",real:0,poor:.61,medium:.34,strong:.38},
+  {id:"E",real:1,poor:.58,medium:.81,strong:.88},{id:"F",real:0,poor:.55,medium:.68,strong:.31},
+  {id:"G",real:0,poor:.49,medium:.61,strong:.29},{id:"H",real:0,poor:.52,medium:.54,strong:.25},
+  {id:"I",real:0,poor:.43,medium:.47,strong:.22},{id:"J",real:0,poor:.46,medium:.39,strong:.18},
+  {id:"K",real:1,poor:.39,medium:.57,strong:.72},{id:"L",real:0,poor:.35,medium:.08,strong:.09}
+];
+const seriesConfig={poor:{label:"Baja discriminacion",color:"#dc2626",fill:"rgba(220,38,38,.08)"},medium:{label:"Discriminacion media",color:"#2563eb",fill:"rgba(37,99,235,.08)"},strong:{label:"Alta discriminacion",color:"#16a34a",fill:"rgba(22,163,74,.08)"}};
+const thresholdInput=document.getElementById("threshold"),thresholdValue=document.getElementById("thresholdValue"),dataBody=document.getElementById("dataBody"),metricsBody=document.getElementById("metricsBody"),canvas=document.getElementById("prCanvas"),ctx=canvas.getContext("2d"),prTooltip=document.getElementById("prTooltip"),legend=document.getElementById("legend");
+let renderedPoints=[];
+const positives=rows.filter(row=>row.real===1).length, prevalence=positives/rows.length;
+function activeSeries(){return [...document.querySelectorAll(".series-toggle:checked")].map(el=>el.dataset.series)}
+function calculateAtThreshold(series,threshold){let tp=0,fp=0,fn=0,tn=0;rows.forEach(row=>{const pred=row[series]>=threshold?1:0;if(row.real===1&&pred===1)tp++;else if(row.real===0&&pred===1)fp++;else if(row.real===1&&pred===0)fn++;else tn++});const precision=(tp+fp)?tp/(tp+fp):1,recall=(tp+fn)?tp/(tp+fn):0;return{tp,fp,fn,tn,precision,recall,f1:(precision+recall)?2*precision*recall/(precision+recall):0}}
+function prPoints(series){const thresholds=[Infinity,...[...new Set(rows.map(row=>row[series]))].sort((a,b)=>b-a)];return thresholds.map(threshold=>{const m=calculateAtThreshold(series,threshold);return{threshold,precision:m.precision,recall:m.recall}})}
+function averagePrecision(series){const sorted=[...rows].sort((a,b)=>b[series]-a[series]);let tp=0,area=0;sorted.forEach((row,index)=>{if(row.real===1){tp++;area+=(tp/(index+1))/positives}});return area}
+function buildTable(){const threshold=parseFloat(thresholdInput.value);dataBody.innerHTML="";rows.forEach(row=>{const cells=["poor","medium","strong"].map(series=>{const pred=row[series]>=threshold?1:0;return `<td class="prob">${row[series].toFixed(2)}</td><td class="pred-cell ${pred===row.real?"pred-ok":"pred-bad"}">${pred}</td>`}).join("");const tr=document.createElement("tr");tr.innerHTML=`<td>${row.id}</td><td><strong>${row.real}</strong></td>${cells}`;dataBody.appendChild(tr)})}
+function resizeCanvas(){const rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1;canvas.width=Math.max(1,Math.round(rect.width*ratio));canvas.height=Math.max(1,Math.round(rect.height*ratio));ctx.setTransform(ratio,0,0,ratio,0,0)}
+function drawAxes(w,h,pad){const{l,r,t,b}=pad;ctx.strokeStyle="#cfd6df";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l,t);ctx.lineTo(l,h-b);ctx.lineTo(w-r,h-b);ctx.stroke();ctx.fillStyle="#374151";ctx.font="13px Arial";ctx.fillText("Precision",12,23);ctx.fillText("Recall",w-54,h-16);ctx.fillText("0",l-14,h-b+18);ctx.fillText("1",l-14,t+4);ctx.fillText("1",w-r-4,h-b+18);const y=h-b-prevalence*(h-pad.t-pad.b);ctx.setLineDash([6,6]);ctx.strokeStyle="#aeb7c4";ctx.beginPath();ctx.moveTo(l,y);ctx.lineTo(w-r,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle="#6b7280";ctx.font="12px Arial";ctx.fillText(`Prevalencia ${prevalence.toFixed(2)}`,w-r-108,y-7)}
+function draw(){resizeCanvas();const rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height,pad={l:68,r:24,t:28,b:54},plotW=w-pad.l-pad.r,plotH=h-pad.t-pad.b;ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);drawAxes(w,h,pad);renderedPoints=[];const currentThreshold=parseFloat(thresholdInput.value);activeSeries().forEach(series=>{const cfg=seriesConfig[series],displayPts=prPoints(series).map(p=>({...p,series,x:pad.l+p.recall*plotW,y:h-pad.b-p.precision*plotH}));renderedPoints.push(...displayPts);ctx.strokeStyle=cfg.color;ctx.lineWidth=3;ctx.beginPath();displayPts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();displayPts.forEach(p=>{ctx.fillStyle="#fff";ctx.strokeStyle=cfg.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();ctx.stroke()});const m=calculateAtThreshold(series,currentThreshold);ctx.fillStyle=cfg.color;ctx.beginPath();ctx.arc(pad.l+m.recall*plotW,h-pad.b-m.precision*plotH,7,0,Math.PI*2);ctx.fill()});updateLegend();updateMetrics()}
+function updateLegend(){legend.innerHTML="";activeSeries().forEach(series=>{const cfg=seriesConfig[series],item=document.createElement("div");item.className="legend-item";item.innerHTML=`<span class="legend-line" style="background:${cfg.color}"></span><span>${cfg.label} · AP ${averagePrecision(series).toFixed(3)}</span>`;legend.appendChild(item)});if(!activeSeries().length)legend.innerHTML='<span class="small">Activa al menos una columna para mostrar su curva.</span>'}
+function updateMetrics(){const threshold=parseFloat(thresholdInput.value);metricsBody.innerHTML="";activeSeries().forEach(series=>{const cfg=seriesConfig[series],m=calculateAtThreshold(series,threshold),tr=document.createElement("tr");tr.innerHTML=`<td class="model-name"><span class="swatch" style="background:${cfg.color};margin-right:7px"></span>${cfg.label}</td><td>${m.tp}</td><td>${m.fp}</td><td>${m.fn}</td><td>${m.tn}</td><td>${m.precision.toFixed(3)}</td><td>${m.recall.toFixed(3)}</td><td>${m.f1.toFixed(3)}</td><td><span class="ap-pill">${averagePrecision(series).toFixed(3)}</span></td>`;metricsBody.appendChild(tr)});if(!activeSeries().length){const tr=document.createElement("tr");tr.innerHTML='<td colspan="9" class="small">No hay curvas seleccionadas.</td>';metricsBody.appendChild(tr)}}
+function updateThreshold(){thresholdValue.textContent=parseFloat(thresholdInput.value).toFixed(2);buildTable();draw()}
+function mousePos(event){const rect=canvas.getBoundingClientRect();return{x:event.clientX-rect.left,y:event.clientY-rect.top}}
+canvas.addEventListener("mousemove",event=>{const mouse=mousePos(event);let nearest=null,minDistance=Infinity;renderedPoints.forEach(p=>{const d=Math.hypot(mouse.x-p.x,mouse.y-p.y);if(d<minDistance){minDistance=d;nearest=p}});if(nearest&&minDistance<=14){const cfg=seriesConfig[nearest.series],thresholdText=nearest.threshold===Infinity?"> maximo":nearest.threshold.toFixed(2);prTooltip.innerHTML=`<strong>${cfg.label}</strong><br>Umbral: ${thresholdText}<br>Precision: ${nearest.precision.toFixed(3)} (${(nearest.precision*100).toFixed(1)}%)<br>Recall: ${nearest.recall.toFixed(3)} (${(nearest.recall*100).toFixed(1)}%)<br>AP: ${averagePrecision(nearest.series).toFixed(3)}`;const rect=canvas.getBoundingClientRect();prTooltip.style.left=`${mouse.x}px`;prTooltip.style.top=`${mouse.y}px`;prTooltip.style.transform=mouse.x>rect.width-200?"translate(-192px,-50%)":"translate(12px,-50%)";prTooltip.style.display="block"}else prTooltip.style.display="none"});canvas.addEventListener("mouseleave",()=>prTooltip.style.display="none");thresholdInput.addEventListener("input",updateThreshold);document.querySelectorAll(".series-toggle").forEach(cb=>cb.addEventListener("change",draw));window.addEventListener("resize",draw);buildTable();updateThreshold();
+</script>
+</body>
+</html>
