@@ -59,6 +59,48 @@ h2{
   margin:0 0 12px;
 }
 
+.concept-card{
+  margin:14px 0;
+  background:linear-gradient(135deg,#ffffff 0%, #f7fbff 100%);
+}
+
+.concept-grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:14px;
+  align-items:start;
+}
+
+.concept-box{
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#fff;
+}
+
+.concept-box h3{
+  margin:0 0 8px;
+  font-size:1rem;
+}
+
+.concept-box p{
+  margin:0 0 9px;
+}
+
+.concept-list{
+  margin:0;
+  padding-left:18px;
+}
+
+.concept-list li{
+  margin-bottom:7px;
+}
+
+.formula{
+  font-weight:700;
+  color:var(--accent);
+}
+
 .controls{
   display:flex;
   gap:16px;
@@ -315,6 +357,7 @@ canvas{
 @media(max-width:1100px){
   .container{width:97vw}
   .main-grid{grid-template-columns:1fr}
+  .concept-grid{grid-template-columns:1fr}
 }
 
 @media(max-width:720px){
@@ -331,6 +374,36 @@ canvas{
   <p class="lead">
     Las 12 filas son las mismas observaciones de prueba. Cada columna muestra el score o probabilidad P(1) producido por un modelo con distinta capacidad de separar las clases. Activa o desactiva cada columna para comparar sus curvas ROC.
   </p>
+
+  <section class="card concept-card">
+    <h2>0. Idea conceptual antes de interactuar</h2>
+
+    <div class="concept-grid">
+      <div class="concept-box">
+        <h3>Qué está midiendo una curva ROC</h3>
+        <p>
+          Un clasificador binario no solo puede dar una clase final; también puede producir un <strong>score</strong> o grado de confianza de que el caso pertenece a la clase positiva.
+          Al fijar un <strong>umbral</strong>, ese score se convierte en una predicción 0 o 1.
+        </p>
+        <p>
+          La curva ROC muestra qué pasa cuando ese umbral recorre todos los valores posibles: en cada punto se compara cuántos positivos se detectan correctamente frente a cuántos negativos se marcan por error como positivos.
+        </p>
+        <p class="formula">ROC = sensibilidad (TPR) frente a tasa de falsos positivos (FPR)</p>
+      </div>
+
+      <div class="concept-box">
+        <h3>Cómo leer este material</h3>
+        <ul class="concept-list">
+          <li><strong>Score alto:</strong> el modelo considera más probable que el caso sea positivo.</li>
+          <li><strong>Umbral alto:</strong> el modelo se vuelve más estricto para predecir clase 1.</li>
+          <li><strong>TPR:</strong> proporción de positivos reales detectados correctamente.</li>
+          <li><strong>FPR:</strong> proporción de negativos reales clasificados por error como positivos.</li>
+          <li><strong>Mejor ROC:</strong> se acerca a la esquina superior izquierda.</li>
+          <li><strong>AUC:</strong> resume en un solo número la capacidad global de discriminación del modelo.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
   <div class="controls">
     <label for="threshold"><strong>Umbral:</strong></label>
