@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Curva ROC interactiva</title>
+<style>
+:root{
+  --bg:#f6f8fb;
+  --card:#ffffff;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --border:#dbe2ea;
+  --good:#dff6e8;
+  --bad:#fde8e8;
+  --accent:#2563eb;
+  --accent-soft:#dbeafe;
+  --warn:#fff4d6;
+
+  --poor:#dc2626;
+  --medium:#2563eb;
+  --strong:#16a34a;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  min-height:100%;
+}
+
+body{
+  font-family:Arial, Helvetica, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.42;
+}
+
+.container{
+  width:95vw;
+  max-width:none;
+  margin:0 auto;
+  padding:18px 0 28px;
+}
+
+h1{
+  margin:0 0 6px;
+  font-size:1.9rem;
+}
+
+h2{
+  margin:0 0 10px;
+  font-size:1.28rem;
+}
+
+.lead{
+  color:var(--muted);
+  margin:0 0 12px;
+}
+
+.controls{
+  display:flex;
+  gap:16px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin:12px 0 14px;
+  padding:11px 14px;
+  background:var(--accent-soft);
+  border-radius:10px;
+}
+
+input[type="range"]{
+  flex:1 1 420px;
+  min-width:260px;
+  max-width:760px;
+}
+
+.threshold{
+  min-width:62px;
+  font-weight:bold;
+  font-size:1.2rem;
+  color:var(--accent);
+}
+
+.small{
+  color:var(--muted);
+  font-size:.84rem;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 4px 16px rgba(0,0,0,.04);
+}
+
+.main-grid{
+  display:grid;
+  grid-template-columns:minmax(430px,.82fr) minmax(620px,1.18fr);
+  gap:14px;
+  align-items:stretch;
+}
+
+.table-wrap{
+  width:100%;
+  overflow-x:auto;
+  overflow-y:auto;
+  max-height:690px;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+
+table{
+  width:auto;
+  border-collapse:collapse;
+  font-size:.89rem;
+  min-width:0;
+}
+
+th,td{
+  border-bottom:1px solid var(--border);
+  padding:7px 6px;
+  text-align:center;
+  white-space:nowrap;
+}
+
+th{
+  background:#eef2f7;
+  position:sticky;
+  top:0;
+  z-index:2;
+  font-size:.85rem;
+}
+
+th:first-child,td:first-child{width:52px; min-width:52px}
+th:nth-child(2),td:nth-child(2){width:52px; min-width:52px}
+
+.score-head{
+  width:96px;
+  min-width:96px;
+}
+
+.pred-head{
+  width:72px;
+  min-width:72px;
+}
+
+.pred-cell{
+  font-weight:700;
+}
+
+.pred-ok{
+  background:#dff6e8;
+}
+
+.pred-bad{
+  background:#fca5a5;
+  color:#7f1d1d;
+}
+
+.score-head label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  cursor:pointer;
+}
+
+.score-head input{
+  width:16px;
+  height:16px;
+  cursor:pointer;
+}
+
+.swatch{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:inline-block;
+}
+
+.swatch.poor{background:var(--poor)}
+.swatch.medium{background:var(--medium)}
+.swatch.strong{background:var(--strong)}
+
+.prob{
+  font-variant-numeric:tabular-nums;
+  font-weight:700;
+}
+
+.chart-card{
+  display:flex;
+  flex-direction:column;
+}
+
+.chart-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+
+.legend{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:5px;
+  font-size:.82rem;
+}
+
+.legend-item{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+
+.legend-line{
+  width:20px;
+  height:3px;
+  border-radius:4px;
+}
+
+.canvas-wrap{
+  position:relative;
+  width:100%;
+  flex:1;
+  min-height:520px;
+}
+
+canvas{
+  width:100%;
+  height:100%;
+  min-height:520px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:10px;
+  display:block;
+  cursor:crosshair;
+}
+
+.roc-tooltip{
+  position:absolute;
+  display:none;
+  pointer-events:none;
+  z-index:5;
+  min-width:170px;
+  padding:9px 11px;
+  border-radius:8px;
+  background:rgba(17,24,39,.96);
+  color:#fff;
+  font-size:.8rem;
+  line-height:1.4;
+  box-shadow:0 5px 18px rgba(0,0,0,.18);
+}
+
+.metrics-card{
+  margin-top:14px;
+}
+
+.metrics-table-wrap{
+  overflow-x:auto;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+
+.metrics-table{
+  min-width:820px;
+}
+
+.metrics-table th,
+.metrics-table td{
+  padding:8px 9px;
+}
+
+.model-name{
+  text-align:left;
+  font-weight:700;
+}
+
+.auc-pill{
+  display:inline-block;
+  min-width:58px;
+  padding:3px 8px;
+  border-radius:999px;
+  background:#eef2f7;
+  font-weight:700;
+}
+
+.note{
+  margin-top:10px;
+  padding:10px 12px;
+  background:var(--warn);
+  border-radius:10px;
+  font-size:.9rem;
+}
+
+.steps{
+  margin-top:14px;
+}
+
+.steps ol{
+  columns:2;
+  column-gap:40px;
+  margin-bottom:0;
+}
+
+.steps li{
+  break-inside:avoid;
+  margin-bottom:6px;
+}
+
+@media(max-width:1100px){
+  .container{width:97vw}
+  .main-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:720px){
+  .container{width:96vw}
+  .steps ol{columns:1}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Curva ROC: comparación de niveles de discriminación</h1>
+
+  <p class="lead">
+    Las 12 filas son las mismas observaciones de prueba. Cada columna muestra el score o probabilidad P(1) producido por un modelo con distinta capacidad de separar las clases. Activa o desactiva cada columna para comparar sus curvas ROC.
+  </p>
+
+  <div class="controls">
+    <label for="threshold"><strong>Umbral:</strong></label>
+    <input id="threshold" type="range" min="0" max="1" step="0.01" value="0.50">
+    <span id="thresholdValue" class="threshold">0.50</span>
+    <span class="small">Para cada modelo: P(1) ≥ umbral → predicción 1</span>
+  </div>
+
+  <div class="main-grid">
+    <section class="card">
+      <h2>1. Datos de prueba</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Caso</th>
+              <th>Real</th>
+
+              <th class="score-head">
+                <label title="Mostrar u ocultar curva pobre">
+                  <input type="checkbox" class="series-toggle" data-series="poor" checked>
+                  <span class="swatch poor"></span>
+                  Pobre
+                </label>
+              </th>
+              <th class="pred-head">Pred.</th>
+
+              <th class="score-head">
+                <label title="Mostrar u ocultar curva media">
+                  <input type="checkbox" class="series-toggle" data-series="medium" checked>
+                  <span class="swatch medium"></span>
+                  Media
+                </label>
+              </th>
+              <th class="pred-head">Pred.</th>
+
+              <th class="score-head">
+                <label title="Mostrar u ocultar curva alta">
+                  <input type="checkbox" class="series-toggle" data-series="strong" checked>
+                  <span class="swatch strong"></span>
+                  Alta
+                </label>
+              </th>
+              <th class="pred-head">Pred.</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        Cada fila representa el mismo caso. Lo único que cambia entre columnas es el score asignado por cada modelo.
+      </div>
+    </section>
+
+    <section class="card chart-card">
+      <div class="chart-header">
+        <div>
+          <h2>2. Curvas ROC</h2>
+          <div class="small">
+            Cada curva usa todos los umbrales posibles. El punto sólido sobre cada curva corresponde al umbral actual.
+          </div>
+
+          <div id="legend" class="legend"></div>
+        </div>
+      </div>
+
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="rocCanvas"></canvas>
+        <div id="rocTooltip" class="roc-tooltip"></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card metrics-card">
+    <h2>3. Métricas con el umbral seleccionado</h2>
+
+    <div class="metrics-table-wrap">
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Modelo</th>
+            <th>TP</th>
+            <th>FP</th>
+            <th>FN</th>
+            <th>TN</th>
+            <th>TPR</th>
+            <th>FPR</th>
+            <th>AUC</th>
+          </tr>
+        </thead>
+        <tbody id="metricsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card steps">
+    <h2>4. Qué observar</h2>
+    <ol>
+      <li>Las tres columnas pertenecen a las mismas 12 observaciones.</li>
+      <li>La diferencia está en qué score asigna cada modelo a cada observación.</li>
+      <li>Si positivos y negativos se mezclan mucho en los scores, la ROC se acerca a la diagonal.</li>
+      <li>Si los positivos tienden a recibir scores mayores que los negativos, la ROC se acerca a la esquina superior izquierda.</li>
+      <li>El AUC resume la capacidad de discriminación de toda la curva.</li>
+      <li>El umbral no cambia la curva completa: únicamente mueve el punto de operación sobre cada curva.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+const rows = [
+  {id:"A", real:1, poor:0.72, medium:0.95, strong:0.96},
+  {id:"B", real:0, poor:0.68, medium:0.88, strong:0.44},
+  {id:"C", real:1, poor:0.64, medium:0.83, strong:0.91},
+  {id:"D", real:0, poor:0.61, medium:0.34, strong:0.38},
+  {id:"E", real:1, poor:0.58, medium:0.76, strong:0.86},
+  {id:"F", real:0, poor:0.55, medium:0.68, strong:0.31},
+  {id:"G", real:1, poor:0.49, medium:0.61, strong:0.79},
+  {id:"H", real:0, poor:0.52, medium:0.54, strong:0.25},
+  {id:"I", real:1, poor:0.43, medium:0.47, strong:0.72},
+  {id:"J", real:0, poor:0.46, medium:0.39, strong:0.18},
+  {id:"K", real:1, poor:0.39, medium:0.57, strong:0.67},
+  {id:"L", real:0, poor:0.35, medium:0.08, strong:0.09}
+];
+
+const seriesConfig = {
+  poor:{
+    label:"Pobre",
+    color:"#dc2626",
+    fill:"rgba(220,38,38,0.08)"
+  },
+  medium:{
+    label:"Media",
+    color:"#2563eb",
+    fill:"rgba(37,99,235,0.08)"
+  },
+  strong:{
+    label:"Alta",
+    color:"#16a34a",
+    fill:"rgba(22,163,74,0.08)"
+  }
+};
+
+const thresholdInput = document.getElementById("threshold");
+const thresholdValue = document.getElementById("thresholdValue");
+const dataBody = document.getElementById("dataBody");
+const metricsBody = document.getElementById("metricsBody");
+const canvas = document.getElementById("rocCanvas");
+const ctx = canvas.getContext("2d");
+const rocTooltip = document.getElementById("rocTooltip");
+const legend = document.getElementById("legend");
+
+let renderedPoints = [];
+
+function activeSeries(){
+  return [...document.querySelectorAll(".series-toggle:checked")]
+    .map(el=>el.dataset.series);
+}
+
+function buildTable(){
+  const threshold=parseFloat(thresholdInput.value);
+  dataBody.innerHTML="";
+
+  rows.forEach(row=>{
+    const predPoor = row.poor >= threshold ? 1 : 0;
+    const predMedium = row.medium >= threshold ? 1 : 0;
+    const predStrong = row.strong >= threshold ? 1 : 0;
+
+    const clsPoor = predPoor === row.real ? "pred-ok" : "pred-bad";
+    const clsMedium = predMedium === row.real ? "pred-ok" : "pred-bad";
+    const clsStrong = predStrong === row.real ? "pred-ok" : "pred-bad";
+
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${row.id}</td>
+      <td><strong>${row.real}</strong></td>
+
+      <td class="prob">${row.poor.toFixed(2)}</td>
+      <td class="pred-cell ${clsPoor}">${predPoor}</td>
+
+      <td class="prob">${row.medium.toFixed(2)}</td>
+      <td class="pred-cell ${clsMedium}">${predMedium}</td>
+
+      <td class="prob">${row.strong.toFixed(2)}</td>
+      <td class="pred-cell ${clsStrong}">${predStrong}</td>
+    `;
+    dataBody.appendChild(tr);
+  });
+}
+
+function calculateAtThreshold(series, threshold){
+  let tp=0,fp=0,fn=0,tn=0;
+
+  rows.forEach(row=>{
+    const pred=row[series] >= threshold ? 1 : 0;
+
+    if(row.real===1 && pred===1) tp++;
+    else if(row.real===0 && pred===1) fp++;
+    else if(row.real===1 && pred===0) fn++;
+    else tn++;
+  });
+
+  return {
+    tp,fp,fn,tn,
+    tpr:(tp+fn)?tp/(tp+fn):0,
+    fpr:(fp+tn)?fp/(fp+tn):0
+  };
+}
+
+function rocPoints(series){
+  const thresholds=[
+    Infinity,
+    ...[...new Set(rows.map(r=>r[series]))].sort((a,b)=>b-a),
+    -Infinity
+  ];
+
+  return thresholds.map(threshold=>{
+    const m=calculateAtThreshold(series,threshold);
+    return {threshold,fpr:m.fpr,tpr:m.tpr};
+  });
+}
+
+function auc(points){
+  let area=0;
+
+  for(let i=1;i<points.length;i++){
+    const a=points[i-1];
+    const b=points[i];
+    area += (b.fpr-a.fpr)*(a.tpr+b.tpr)/2;
+  }
+
+  return area;
+}
+
+function resizeCanvas(){
+  const rect=canvas.getBoundingClientRect();
+  const ratio=window.devicePixelRatio||1;
+
+  canvas.width=Math.max(1,Math.round(rect.width*ratio));
+  canvas.height=Math.max(1,Math.round(rect.height*ratio));
+
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+}
+
+function drawAxes(w,h,pad){
+  const {l,r,t,b}=pad;
+
+  ctx.strokeStyle="#cfd6df";
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(l,t);
+  ctx.lineTo(l,h-b);
+  ctx.lineTo(w-r,h-b);
+  ctx.stroke();
+
+  ctx.fillStyle="#374151";
+  ctx.font="13px Arial";
+  ctx.fillText("TPR",14,23);
+  ctx.fillText("FPR",w-45,h-16);
+  ctx.fillText("0",l-14,h-b+18);
+  ctx.fillText("1",l-14,t+4);
+  ctx.fillText("1",w-r-4,h-b+18);
+
+  ctx.setLineDash([6,6]);
+  ctx.strokeStyle="#aeb7c4";
+  ctx.beginPath();
+  ctx.moveTo(l,h-b);
+  ctx.lineTo(w-r,t);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle="#6b7280";
+  ctx.font="12px Arial";
+  ctx.fillText("Azar", w-r-44, t+18);
+}
+
+function draw(){
+  resizeCanvas();
+
+  const rect=canvas.getBoundingClientRect();
+  const w=rect.width;
+  const h=rect.height;
+  const pad={l:58,r:24,t:28,b:54};
+  const plotW=w-pad.l-pad.r;
+  const plotH=h-pad.t-pad.b;
+
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle="#fff";
+  ctx.fillRect(0,0,w,h);
+
+  drawAxes(w,h,pad);
+
+  renderedPoints=[];
+
+  const selected=activeSeries();
+  const currentThreshold=parseFloat(thresholdInput.value);
+
+  selected.forEach(series=>{
+    const cfg=seriesConfig[series];
+    const pts=rocPoints(series);
+
+    const displayPts=pts.map(p=>({
+      ...p,
+      series,
+      x:pad.l+p.fpr*plotW,
+      y:h-pad.b-p.tpr*plotH
+    }));
+
+    renderedPoints.push(...displayPts);
+
+    // área bajo la curva
+    ctx.beginPath();
+    ctx.moveTo(pad.l,h-pad.b);
+    displayPts.forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.lineTo(w-pad.r,h-pad.b);
+    ctx.closePath();
+    ctx.fillStyle=cfg.fill;
+    ctx.fill();
+
+    // línea ROC
+    ctx.strokeStyle=cfg.color;
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    displayPts.forEach((p,i)=>{
+      if(i===0) ctx.moveTo(p.x,p.y);
+      else ctx.lineTo(p.x,p.y);
+    });
+    ctx.stroke();
+
+    // puntos ROC
+    displayPts.forEach(p=>{
+      ctx.fillStyle="#fff";
+      ctx.strokeStyle=cfg.color;
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,4,0,Math.PI*2);
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // punto del umbral actual
+    const m=calculateAtThreshold(series,currentThreshold);
+    const cx=pad.l+m.fpr*plotW;
+    const cy=h-pad.b-m.tpr*plotH;
+
+    ctx.fillStyle=cfg.color;
+    ctx.beginPath();
+    ctx.arc(cx,cy,7,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  updateLegend();
+  updateMetrics();
+}
+
+function updateLegend(){
+  legend.innerHTML="";
+
+  activeSeries().forEach(series=>{
+    const cfg=seriesConfig[series];
+    const a=auc(rocPoints(series));
+
+    const item=document.createElement("div");
+    item.className="legend-item";
+    item.innerHTML=`
+      <span class="legend-line" style="background:${cfg.color}"></span>
+      <span>${cfg.label} · AUC ${a.toFixed(3)}</span>
+    `;
+    legend.appendChild(item);
+  });
+
+  if(activeSeries().length===0){
+    legend.innerHTML='<span class="small">Activa al menos una columna para mostrar su curva.</span>';
+  }
+}
+
+function updateMetrics(){
+  const threshold=parseFloat(thresholdInput.value);
+  metricsBody.innerHTML="";
+
+  activeSeries().forEach(series=>{
+    const cfg=seriesConfig[series];
+    const m=calculateAtThreshold(series,threshold);
+    const a=auc(rocPoints(series));
+
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td class="model-name">
+        <span class="swatch" style="background:${cfg.color};margin-right:7px"></span>
+        ${cfg.label}
+      </td>
+      <td>${m.tp}</td>
+      <td>${m.fp}</td>
+      <td>${m.fn}</td>
+      <td>${m.tn}</td>
+      <td>${m.tpr.toFixed(3)}</td>
+      <td>${m.fpr.toFixed(3)}</td>
+      <td><span class="auc-pill">${a.toFixed(3)}</span></td>
+    `;
+    metricsBody.appendChild(tr);
+  });
+
+  if(activeSeries().length===0){
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td colspan="8" class="small">No hay curvas seleccionadas.</td>';
+    metricsBody.appendChild(tr);
+  }
+}
+
+function updateThreshold(){
+  thresholdValue.textContent=parseFloat(thresholdInput.value).toFixed(2);
+  buildTable();
+  draw();
+}
+
+function mousePos(event){
+  const rect=canvas.getBoundingClientRect();
+  return {
+    x:event.clientX-rect.left,
+    y:event.clientY-rect.top
+  };
+}
+
+canvas.addEventListener("mousemove",event=>{
+  const mouse=mousePos(event);
+
+  let nearest=null;
+  let minDistance=Infinity;
+
+  renderedPoints.forEach(p=>{
+    const dx=mouse.x-p.x;
+    const dy=mouse.y-p.y;
+    const d=Math.sqrt(dx*dx+dy*dy);
+
+    if(d<minDistance){
+      minDistance=d;
+      nearest=p;
+    }
+  });
+
+  if(nearest && minDistance<=14){
+    const cfg=seriesConfig[nearest.series];
+
+    let thresholdText;
+    if(nearest.threshold===Infinity) thresholdText="> máximo";
+    else if(nearest.threshold===-Infinity) thresholdText="< mínimo";
+    else thresholdText=nearest.threshold.toFixed(2);
+
+    rocTooltip.innerHTML=`
+      <strong>${cfg.label}</strong><br>
+      Umbral: ${thresholdText}<br>
+      FPR: ${nearest.fpr.toFixed(3)} (${(nearest.fpr*100).toFixed(1)}%)<br>
+      TPR: ${nearest.tpr.toFixed(3)} (${(nearest.tpr*100).toFixed(1)}%)<br>
+      AUC: ${auc(rocPoints(nearest.series)).toFixed(3)}
+    `;
+
+    const rect=canvas.getBoundingClientRect();
+
+    rocTooltip.style.left=`${mouse.x}px`;
+    rocTooltip.style.top=`${mouse.y}px`;
+
+    if(mouse.x>rect.width-190){
+      rocTooltip.style.transform="translate(-178px,-50%)";
+    }else{
+      rocTooltip.style.transform="translate(12px,-50%)";
+    }
+
+    rocTooltip.style.display="block";
+  }else{
+    rocTooltip.style.display="none";
+  }
+});
+
+canvas.addEventListener("mouseleave",()=>{
+  rocTooltip.style.display="none";
+});
+
+thresholdInput.addEventListener("input",updateThreshold);
+
+document.querySelectorAll(".series-toggle").forEach(cb=>{
+  cb.addEventListener("change",draw);
+});
+
+window.addEventListener("resize",draw);
+
+buildTable();
+updateThreshold();
+</script>
+
+</body>
+</html>
