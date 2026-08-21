@@ -180,8 +180,8 @@ th:first-child,td:first-child{width:52px; min-width:52px}
 th:nth-child(2),td:nth-child(2){width:52px; min-width:52px}
 
 .score-head{
-  width:96px;
-  min-width:96px;
+  width:122px;
+  min-width:122px;
 }
 
 .pred-head{
@@ -203,11 +203,14 @@ th:nth-child(2),td:nth-child(2){width:52px; min-width:52px}
 }
 
 .score-head label{
-  display:inline-flex;
+  display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   gap:6px;
   cursor:pointer;
+  line-height:1.15;
+  white-space:normal;
+  text-align:left;
 }
 
 .score-head input{
@@ -441,28 +444,28 @@ canvas{
               <th>Real</th>
 
               <th class="score-head">
-                <label title="Mostrar u ocultar curva pobre">
+                <label title="Mostrar u ocultar modelo de baja discriminacion">
                   <input type="checkbox" class="series-toggle" data-series="poor" checked>
                   <span class="swatch poor"></span>
-                  Pobre
+                  Baja discr.
                 </label>
               </th>
               <th class="pred-head">Pred.</th>
 
               <th class="score-head">
-                <label title="Mostrar u ocultar curva media">
+                <label title="Mostrar u ocultar modelo de discriminacion media">
                   <input type="checkbox" class="series-toggle" data-series="medium" checked>
                   <span class="swatch medium"></span>
-                  Media
+                  Discr. media
                 </label>
               </th>
               <th class="pred-head">Pred.</th>
 
               <th class="score-head">
-                <label title="Mostrar u ocultar curva alta">
+                <label title="Mostrar u ocultar modelo de alta discriminacion">
                   <input type="checkbox" class="series-toggle" data-series="strong" checked>
                   <span class="swatch strong"></span>
-                  Alta
+                  Alta discr.
                 </label>
               </th>
               <th class="pred-head">Pred.</th>
@@ -549,17 +552,17 @@ const rows = [
 
 const seriesConfig = {
   poor:{
-    label:"Pobre",
+    label:"Baja discriminacion",
     color:"#dc2626",
     fill:"rgba(220,38,38,0.08)"
   },
   medium:{
-    label:"Media",
+    label:"Discriminacion media",
     color:"#2563eb",
     fill:"rgba(37,99,235,0.08)"
   },
   strong:{
-    label:"Alta",
+    label:"Alta discriminacion",
     color:"#16a34a",
     fill:"rgba(22,163,74,0.08)"
   }
