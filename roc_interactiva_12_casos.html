@@ -342,6 +342,23 @@ canvas{
   font-size:.9rem;
 }
 
+.reference-note{
+  margin-top:14px;
+  padding:12px 14px;
+  background:#eef6ff;
+  border:1px solid #cfe0ff;
+  border-radius:10px;
+  font-size:.92rem;
+}
+
+.reference-note p{
+  margin:0 0 8px;
+}
+
+.reference-note p:last-child{
+  margin-bottom:0;
+}
+
 .steps{
   margin-top:14px;
 }
@@ -421,6 +438,18 @@ canvas{
       <p>
         La idea central no es contar solo aciertos, sino comparar <strong>qué tan bien ordena el modelo los casos de ambas clases</strong>.
         Esa diferencia se refleja en la forma de la curva ROC y en el valor del AUC.
+      </p>
+    </div>
+
+    <div class="reference-note">
+      <p>
+        <strong>Aclaración didáctica:</strong> este ejemplo usa <strong>6 casos positivos y 6 negativos</strong>, es decir, una situación <strong>balanceada (50/50)</strong>.
+        Por eso la curva ROC funciona bien aquí como herramienta principal para explicar discriminación y AUC.
+      </p>
+      <p>
+        En cambio, cuando la clase positiva es claramente minoritaria, conviene complementar la ROC con una <strong>curva Precision-Recall</strong>.
+        Como regla práctica reportada en parte de la literatura, una minoría entre <strong>20% y 40%</strong> suele describirse como <strong>desbalance leve</strong>, de modo que un caso <strong>70/30</strong> ya puede tratarse como ligeramente desbalanceado.
+        Aun así, <strong>no existe un porcentaje universal</strong>: la severidad real depende también del problema, el costo de los errores y la dificultad para detectar la clase minoritaria.
       </p>
     </div>
   </section>
