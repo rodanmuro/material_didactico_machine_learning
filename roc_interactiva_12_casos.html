@@ -403,6 +403,23 @@ canvas{
         </ul>
       </div>
     </div>
+
+    <div class="concept-box" style="margin-top:14px">
+      <h3>Qué representan las columnas Pobre, Media y Alta</h3>
+      <p>
+        Puedes interpretarlas como <strong>tres modelos de Machine Learning para el mismo problema</strong>, pero con distinta capacidad de discriminación.
+        No tienen por qué ser algoritmos diferentes: también podrían ser <strong>tres versiones del mismo algoritmo</strong> con diferente ajuste.
+      </p>
+      <ul class="concept-list">
+        <li><strong>Pobre:</strong> mezcla más positivos y negativos en sus scores, como un modelo mal ajustado o con variables poco informativas.</li>
+        <li><strong>Media:</strong> separa razonablemente, pero todavía confunde algunos casos.</li>
+        <li><strong>Alta:</strong> asigna scores altos a la mayoría de positivos y bajos a la mayoría de negativos.</li>
+      </ul>
+      <p>
+        La idea central no es contar solo aciertos, sino comparar <strong>qué tan bien ordena el modelo los casos de ambas clases</strong>.
+        Esa diferencia se refleja en la forma de la curva ROC y en el valor del AUC.
+      </p>
+    </div>
   </section>
 
   <div class="controls">
