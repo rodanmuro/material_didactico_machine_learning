@@ -21,7 +21,7 @@ async function load(){
  if(!window.tf){$("status").textContent="TensorFlow.js no cargó. Verifica internet y recarga.";return}
  const raw=await fetch("./iris.data").then(function(r){return r.text()});
  const rows=raw.trim().split(/\n/).map(function(line){const p=line.split(",");return{f:p.slice(0,4).map(Number),y:names.indexOf(p[4].replace("Iris-",""))}});
- const train=[],test=[];names.forEach(function(_,k){const r=rows.filter(function(v){return v.y===k});train.push.apply(train,r.slice(0,40));test.push.apply(test,r.slice(40))});
+ const train=[],test=[],byClass=names.map(function(_,k){return rows.filter(function(v){return v.y===k})});for(let i=0;i<40;i++)byClass.forEach(function(group){train.push(group[i])});byClass.forEach(function(group){test.push.apply(test,group.slice(40))});
  mean=[0,1,2,3].map(function(i){return train.reduce(function(s,r){return s+r.f[i]},0)/train.length});
  std=[0,1,2,3].map(function(i){return Math.sqrt(train.reduce(function(s,r){return s+(r.f[i]-mean[i])**2},0)/train.length)});
  const norm=function(rows){return rows.map(function(r){return r.f.map(function(v,i){return(v-mean[i])/std[i]})})};
@@ -29,7 +29,7 @@ async function load(){
  reset();
 }
 function reset(){
- if(model)model.dispose();model=tf.sequential();model.add(tf.layers.dense({inputShape:[4],units:hidden,activation:"relu"}));model.add(tf.layers.dense({units:3,activation:"softmax"}));model.compile({optimizer:tf.train.adam(.03),loss:"categoricalCrossentropy",metrics:["accuracy"]});losses=[];lastProbabilities=null;lastInputs=null;$("e").textContent="0";$("l").textContent="—";$("a").textContent="—";$("t").textContent="—";tables();chart();$("status").innerHTML="<strong>Red inicializada.</strong> La fila manual ya se muestra en las entradas; elige épocas y pulsa Entrenar.";predict();
+ if(model)model.dispose();model=tf.sequential();model.add(tf.layers.dense({inputShape:[4],units:hidden,activation:"relu"}));model.add(tf.layers.dense({units:3,activation:"softmax"}));model.compile({optimizer:tf.train.adam(.01),loss:"categoricalCrossentropy",metrics:["accuracy"]});losses=[];lastProbabilities=null;lastInputs=null;$("e").textContent="0";$("l").textContent="—";$("a").textContent="—";$("t").textContent="—";tables();chart();$("status").innerHTML="<strong>Red inicializada.</strong> La fila manual ya se muestra en las entradas; elige épocas y pulsa Entrenar.";predict();
 }
 function draw(prob){
  if(prob!==undefined)lastProbabilities=prob;const s=$("net");s.innerHTML="";const pos=layout;const labels=[["Sépalo L","Sépalo A","Pétalo L","Pétalo A"],["h1","h2","h3","h4","h5","h6"],names];
