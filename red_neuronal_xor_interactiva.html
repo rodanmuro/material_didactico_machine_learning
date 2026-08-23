@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red neuronal interactiva: XOR</title>
+<style>
+:root{--ink:#163047;--muted:#66788a;--paper:#f7f4eb;--card:#fffdf8;--line:#d8ddd5;--blue:#1565c0;--orange:#dd6b20;--teal:#07827c;--gold:#f4b740;--soft-blue:#e8f1ff;--soft-teal:#e5f5f0}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 8%,#fffdf2 0,transparent 30%),linear-gradient(125deg,#edf4f1,#f8f3e9);color:var(--ink);font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.42}.container{width:min(1240px,94vw);margin:auto;padding:24px 0 34px}h1,h2,h3{font-family:Georgia,"Times New Roman",serif}h1{margin:0 0 6px;font-size:2rem;letter-spacing:-.02em}h2{margin:0 0 9px;font-size:1.32rem}h3{margin:0 0 7px;font-size:1.04rem}.lead{margin:0;color:var(--muted);max-width:950px}.card{background:rgba(255,253,248,.94);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 25px rgba(27,56,62,.07)}.concept{margin:16px 0;background:linear-gradient(120deg,#fffdf8,#f2faf8)}.concept-grid,.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.concept-box{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fffdfb}.concept-box p{margin:0 0 9px}.concept-box p:last-child{margin-bottom:0}.formula{font-family:Consolas,"Courier New",monospace;font-size:.9rem;color:var(--teal);font-weight:bold}.controls{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end;margin:14px 0}.control{padding:12px 14px;background:var(--soft-blue);border-radius:13px}.control label{display:flex;justify-content:space-between;font-weight:bold;margin-bottom:7px}.control output{color:var(--blue);font-variant-numeric:tabular-nums}.control input{width:100%;accent-color:var(--blue)}.presets{display:flex;gap:7px;flex-wrap:wrap}.presets button{border:1px solid #c6d8ec;background:#fff;color:var(--ink);border-radius:8px;padding:8px 10px;cursor:pointer;font:inherit;font-size:.86rem}.presets button:hover,.presets button.active{background:var(--blue);border-color:var(--blue);color:#fff}.network-card{padding:12px;overflow:hidden}.network-header{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin:0 3px 8px}.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}.legend span{display:inline-flex;align-items:center;gap:5px}.legend i{width:18px;height:3px;border-radius:2px;display:block}.svg-wrap{min-height:480px;border:1px solid var(--line);border-radius:13px;background:linear-gradient(135deg,#fbfdfc,#f4f8f8);overflow:auto}svg{display:block;width:100%;min-width:820px;height:480px}.layer-label{font-family:Georgia,"Times New Roman",serif;font-size:17px;font-weight:bold;fill:#334e5c}.layer-sub{font:12px "Trebuchet MS",sans-serif;fill:#71808a}.edge-label{font:11px Consolas,"Courier New",monospace;fill:#52646e}.node-circle{stroke:#26485b;stroke-width:2;transition:fill .15s}.node-title{font:700 15px "Trebuchet MS",sans-serif;fill:#163047}.node-value{font:12px Consolas,"Courier New",monospace;fill:#34505f}.detail-card{margin-top:14px}.equation{font-family:Consolas,"Courier New",monospace;background:#f3f7f5;border:1px solid #d6e1dc;border-radius:9px;padding:9px 10px;margin:7px 0;font-size:.88rem;overflow-x:auto}.result{display:flex;align-items:center;gap:11px;padding:13px;border-radius:12px;background:var(--soft-teal);border:1px solid #bfe0d8}.result-badge{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:1.15rem;font-weight:bold;background:var(--teal)}.result p{margin:0}.note{margin-top:14px;padding:12px 14px;border-radius:12px;background:#fff5dc;border:1px solid #f0d69a;color:#5d4716}.note p{margin:5px 0 0}.activation-scale{display:flex;align-items:center;gap:8px;font-size:.83rem;color:var(--muted)}.scale-bar{width:94px;height:9px;border-radius:99px;background:linear-gradient(90deg,#e7f1ff,#1d72c9)}@media(max-width:800px){.concept-grid,.details-grid,.controls{grid-template-columns:1fr}.network-header{align-items:flex-start;flex-direction:column}.svg-wrap{min-height:440px}} 
+</style>
+</head>
+<body>
+<main class="container">
+  <h1>Una red neuronal por dentro: aprender XOR</h1>
+  <p class="lead">Explora cómo dos valores de entrada atraviesan una capa oculta y producen una probabilidad final. Este ejemplo usa pesos fijos para representar una función XOR: la salida es alta cuando exactamente una entrada está activa.</p>
+
+  <section class="card concept">
+    <div class="concept-grid">
+      <div class="concept-box">
+        <h2>1. La arquitectura</h2>
+        <p>La red tiene dos entradas, dos neuronas ocultas y una neurona de salida. Cada conexión tiene un <strong>peso</strong>; cada neurona también incorpora un <strong>sesgo</strong>.</p>
+        <p class="formula">z = w₁x₁ + w₂x₂ + b &nbsp; → &nbsp; a = sigmoide(z)</p>
+      </div>
+      <div class="concept-box">
+        <h2>2. Qué está aprendiendo</h2>
+        <p>XOR devuelve 1 cuando solo una entrada vale 1. No puede resolverse con una sola frontera lineal, por eso ilustra por qué una capa oculta es útil.</p>
+        <p class="formula">XOR(0,0)=0 · XOR(0,1)=1 · XOR(1,0)=1 · XOR(1,1)=0</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="controls">
+    <div class="control"><label for="input1">Entrada x₁ <output id="input1Value">0.00</output></label><input id="input1" type="range" min="0" max="1" step="0.01" value="0"></div>
+    <div class="control"><label for="input2">Entrada x₂ <output id="input2Value">0.00</output></label><input id="input2" type="range" min="0" max="1" step="0.01" value="0"></div>
+    <div class="presets" aria-label="Casos XOR"><button type="button" data-x1="0" data-x2="0" class="active">0, 0</button><button type="button" data-x1="0" data-x2="1">0, 1</button><button type="button" data-x1="1" data-x2="0">1, 0</button><button type="button" data-x1="1" data-x2="1">1, 1</button></div>
+  </section>
+
+  <section class="card network-card">
+    <div class="network-header"><div><h2>3. Propagación hacia adelante</h2><p class="lead">El grosor representa la magnitud del peso. Azul: peso positivo. Naranja: peso negativo.</p></div><div class="activation-scale"><span>Activación baja</span><i class="scale-bar"></i><span>alta</span></div></div>
+    <div class="svg-wrap">
+      <svg id="network" viewBox="0 0 1000 480" role="img" aria-label="Diagrama interactivo de una red neuronal de dos entradas, dos neuronas ocultas y una salida">
+        <text x="116" y="45" text-anchor="middle" class="layer-label">Entradas</text><text x="116" y="66" text-anchor="middle" class="layer-sub">datos x₁, x₂</text>
+        <text x="500" y="45" text-anchor="middle" class="layer-label">Capa oculta</text><text x="500" y="66" text-anchor="middle" class="layer-sub">detectores intermedios</text>
+        <text x="854" y="45" text-anchor="middle" class="layer-label">Salida</text><text x="854" y="66" text-anchor="middle" class="layer-sub">probabilidad XOR = 1</text>
+        <g id="edges"></g>
+        <g id="nodes">
+          <g transform="translate(116 178)"><circle id="node-x1" class="node-circle" r="48"/><text x="0" y="-5" text-anchor="middle" class="node-title">x₁</text><text id="value-x1" x="0" y="17" text-anchor="middle" class="node-value">0.00</text></g>
+          <g transform="translate(116 322)"><circle id="node-x2" class="node-circle" r="48"/><text x="0" y="-5" text-anchor="middle" class="node-title">x₂</text><text id="value-x2" x="0" y="17" text-anchor="middle" class="node-value">0.00</text></g>
+          <g transform="translate(500 178)"><circle id="node-or" class="node-circle" r="56"/><text x="0" y="-13" text-anchor="middle" class="node-title">h₁</text><text x="0" y="5" text-anchor="middle" class="node-value">OR</text><text id="value-or" x="0" y="24" text-anchor="middle" class="node-value">0.00</text></g>
+          <g transform="translate(500 322)"><circle id="node-nand" class="node-circle" r="56"/><text x="0" y="-13" text-anchor="middle" class="node-title">h₂</text><text x="0" y="5" text-anchor="middle" class="node-value">NAND</text><text id="value-nand" x="0" y="24" text-anchor="middle" class="node-value">0.00</text></g>
+          <g transform="translate(854 250)"><circle id="node-output" class="node-circle" r="65"/><text x="0" y="-13" text-anchor="middle" class="node-title">ŷ</text><text x="0" y="6" text-anchor="middle" class="node-value">XOR</text><text id="value-output" x="0" y="27" text-anchor="middle" class="node-value">0.00</text></g>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <section class="details-grid" style="margin-top:14px">
+    <article class="card detail-card"><h2>4. Cálculos de la capa oculta</h2><h3>h₁: detector OR</h3><div id="orEquation" class="equation"></div><h3>h₂: detector NAND</h3><div id="nandEquation" class="equation"></div></article>
+    <article class="card detail-card"><h2>5. Cálculo de la salida</h2><h3>ŷ: combinación de h₁ y h₂</h3><div id="outputEquation" class="equation"></div><div class="result"><div id="predictionBadge" class="result-badge">0</div><p id="predictionText"></p></div></article>
+  </section>
+
+  <section class="note"><strong>Idea clave:</strong><p>La red no recibe la regla XOR escrita en código. Durante el entrenamiento, ajustaría pesos y sesgos para reducir el error. Aquí los pesos ya están fijados para que puedas concentrarte en observar el cálculo de cada neurona.</p></section>
+</main>
+<script>
+const input1=document.getElementById("input1");
+const input2=document.getElementById("input2");
+
+const networkWeights={
+  or:{x1:8,x2:8,bias:-4},
+  nand:{x1:-8,x2:-8,bias:12},
+  output:{or:8,nand:8,bias:-12}
+};
+
+const nodePositions={x1:[164,178],x2:[164,322],or:[444,178],nand:[444,322],output:[789,250]};
+
+function sigmoid(value){
+  return 1/(1+Math.exp(-value));
+}
+
+function activationColor(value){
+  const lightness=94-value*48;
+  return "hsl(207, 75%, "+lightness+"%)";
+}
+
+function addEdge(parent,from,to,weight,label){
+  const [x1,y1]=nodePositions[from];
+  const [x2,y2]=nodePositions[to];
+  const positive=weight>=0;
+  const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+  line.setAttribute("x1",x1);
+  line.setAttribute("y1",y1);
+  line.setAttribute("x2",x2);
+  line.setAttribute("y2",y2);
+  line.setAttribute("stroke",positive?"#1565c0":"#dd6b20");
+  line.setAttribute("stroke-width",String(1.5+Math.abs(weight)*.34));
+  line.setAttribute("stroke-opacity",".72");
+  parent.appendChild(line);
+
+  const text=document.createElementNS("http://www.w3.org/2000/svg","text");
+  text.setAttribute("x",(x1+x2)/2);
+  text.setAttribute("y",(y1+y2)/2-7);
+  text.setAttribute("text-anchor","middle");
+  text.setAttribute("class","edge-label");
+  text.textContent=label+" = "+weight;
+  parent.appendChild(text);
+}
+
+function drawEdges(){
+  const edges=document.getElementById("edges");
+  edges.innerHTML="";
+  addEdge(edges,"x1","or",networkWeights.or.x1,"w₁");
+  addEdge(edges,"x2","or",networkWeights.or.x2,"w₂");
+  addEdge(edges,"x1","nand",networkWeights.nand.x1,"w₃");
+  addEdge(edges,"x2","nand",networkWeights.nand.x2,"w₄");
+  addEdge(edges,"or","output",networkWeights.output.or,"w₅");
+  addEdge(edges,"nand","output",networkWeights.output.nand,"w₆");
+}
+
+function setNode(id,value){
+  document.getElementById("node-"+id).setAttribute("fill",activationColor(value));
+  document.getElementById("value-"+id).textContent=value.toFixed(2);
+}
+
+function update(){
+  const x1=parseFloat(input1.value);
+  const x2=parseFloat(input2.value);
+  const zOr=networkWeights.or.x1*x1+networkWeights.or.x2*x2+networkWeights.or.bias;
+  const hOr=sigmoid(zOr);
+  const zNand=networkWeights.nand.x1*x1+networkWeights.nand.x2*x2+networkWeights.nand.bias;
+  const hNand=sigmoid(zNand);
+  const zOutput=networkWeights.output.or*hOr+networkWeights.output.nand*hNand+networkWeights.output.bias;
+  const output=sigmoid(zOutput);
+  const predicted=output>=.5?1:0;
+
+  document.getElementById("input1Value").textContent=x1.toFixed(2);
+  document.getElementById("input2Value").textContent=x2.toFixed(2);
+  setNode("x1",x1);
+  setNode("x2",x2);
+  setNode("or",hOr);
+  setNode("nand",hNand);
+  setNode("output",output);
+  document.getElementById("orEquation").textContent="z₁ = 8("+x1.toFixed(2)+") + 8("+x2.toFixed(2)+") - 4 = "+zOr.toFixed(2)+"  →  h₁ = σ(z₁) = "+hOr.toFixed(3);
+  document.getElementById("nandEquation").textContent="z₂ = -8("+x1.toFixed(2)+") - 8("+x2.toFixed(2)+") + 12 = "+zNand.toFixed(2)+"  →  h₂ = σ(z₂) = "+hNand.toFixed(3);
+  document.getElementById("outputEquation").textContent="z₃ = 8("+hOr.toFixed(3)+") + 8("+hNand.toFixed(3)+") - 12 = "+zOutput.toFixed(2)+"  →  ŷ = σ(z₃) = "+output.toFixed(3);
+  document.getElementById("predictionBadge").textContent=predicted;
+  document.getElementById("predictionBadge").style.background=predicted?"#07827c":"#8c5f17";
+  document.getElementById("predictionText").innerHTML="<strong>Predicción: "+predicted+"</strong><br>La red estima una probabilidad de <strong>"+(output*100).toFixed(1)+"%</strong> para XOR = 1.";
+
+  document.querySelectorAll(".presets button").forEach(function(button){
+    button.classList.toggle("active",x1===parseFloat(button.dataset.x1)&&x2===parseFloat(button.dataset.x2));
+  });
+}
+
+input1.addEventListener("input",update);
+input2.addEventListener("input",update);
+document.querySelectorAll(".presets button").forEach(function(button){
+  button.addEventListener("click",function(){
+    input1.value=button.dataset.x1;
+    input2.value=button.dataset.x2;
+    update();
+  });
+});
+
+drawEdges();
+update();
+</script>
+</body>
+</html>
