@@ -17,7 +17,7 @@
   <section class="card data-card"><h2>Datos de entrenamiento fijos</h2><p class="note">El objetivo no sigue una sola recta. Esto permite comparar lo que puede aproximar una salida lineal frente a una capa oculta ReLU.</p><div class="data-wrap"><table class="data-table"><thead><tr><th>#</th><th>x</th><th>objetivo y</th></tr></thead><tbody id="dataRows"></tbody></table></div></section>
 
   <section class="controls">
-    <div class="control"><label for="hiddenCount">Neuronas ocultas <output id="hiddenValue">3</output></label><input id="hiddenCount" type="range" min="1" max="8" step="1" value="3"></div>
+    <div class="control"><label for="hiddenCount">Neuronas ocultas <output id="hiddenValue">3</output></label><input id="hiddenCount" type="range" min="1" max="10" step="1" value="3"></div>
     <div class="control"><label for="hiddenActivation">Activacion oculta</label><select id="hiddenActivation"><option value="relu" selected>ReLU</option><option value="linear">Lineal</option></select></div>
     <div class="control"><label for="outputActivation">Activacion salida</label><select id="outputActivation"><option value="linear" selected>Lineal</option><option value="relu">ReLU</option></select></div>
     <div><button id="step">Una epoca</button> <button id="train" class="alt">Entrenar</button> <button id="reset" class="alt">Nueva red</button></div>
