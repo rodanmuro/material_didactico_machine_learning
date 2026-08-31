@@ -14,6 +14,8 @@
   <h1>Red neuronal 2D: regiones de clasificacion</h1>
   <p class="lead">Dos entradas <strong>x1</strong> y <strong>x2</strong> ubican cada observacion en un plano. La red aprende una probabilidad por clase y colorea las regiones donde haria cada prediccion. Cambiar la arquitectura crea una red nueva y reinicia sus pesos.</p>
 
+  <section class="card data-card"><h2>0. Funcion de activacion de salida</h2><p class="note"><strong>Modo binario:</strong> esta demostracion usa <strong>una neurona con sigmoid</strong>, que entrega <code>P(clase 1)</code>; la otra probabilidad es <code>P(clase 0) = 1 - P(clase 1)</code>. Tambien se podria usar <strong>softmax con dos neuronas de salida</strong>: es una formulacion equivalente, pero sigmoid hace mas visible el caso binario.</p><p class="note"><strong>Modo multiclase:</strong> usa <strong>tres neuronas con softmax</strong>, una por clase. Softmax convierte sus valores en probabilidades que suman 1. Las activaciones configurables del panel se aplican solo a las capas ocultas.</p></section>
+
   <section class="card data-card"><h2>Datos de entrenamiento</h2><p class="note" id="datasetNote"></p><div class="data-wrap"><table class="data-table"><thead><tr><th>#</th><th>x1</th><th>x2</th><th>clase</th></tr></thead><tbody id="dataRows"></tbody></table></div></section>
 
   <section class="controls">
