@@ -26,7 +26,7 @@
     <div class="control"><label for="hiddenCount">Neuronas por capa <output id="hiddenValue">3</output></label><input id="hiddenCount" type="range" min="1" max="20" step="1" value="3"></div>
     <div class="control"><label for="hiddenActivation">Activacion oculta</label><select id="hiddenActivation"><option value="relu" selected>ReLU</option><option value="leaky">Leaky ReLU</option><option value="tanh">tanh</option><option value="sigmoid">Sigmoid</option><option value="linear">Lineal</option></select></div>
     <div class="control"><label for="outputActivation">Activacion salida</label><select id="outputActivation"><option value="linear" selected>Lineal</option><option value="relu">ReLU</option></select></div>
-    <div class="control"><label for="learningRate">Tasa de aprendizaje <output id="learningRateValue">0.030</output></label><input id="learningRate" type="range" min="0.001" max="0.100" step="0.001" value="0.030"></div>
+    <div class="control"><label for="learningRate">Tasa de aprendizaje <output id="learningRateValue">0.030</output></label><input id="learningRate" type="range" min="0.001" max="1.000" step="0.001" value="0.030"></div>
     <div class="control"><label for="epochsPerRun">Epocas por entrenamiento <output id="epochsValue">100</output></label><input id="epochsPerRun" type="range" min="10" max="1000" step="10" value="100"></div>
     <div><button id="step">Una epoca</button> <button id="train" class="alt">Entrenar</button> <button id="reset" class="alt">Nueva red</button></div>
   </section>
