@@ -14,7 +14,7 @@ q[s, a] += alpha * (
 )</div><div id="history" class="history"></div></article></div></section>
 <section class="card" style="margin-top:16px"><h2>Tabla Q completa</h2><p class="note">Cada fila es un estado de la cuadrícula y cada columna es una acción posible. Los números no son probabilidades: representan recompensa futura esperada. La celda verde de cada fila marca la acción con mayor Q; la fila azul es el estado activo.</p><div id="fullQTable" class="qtable" style="max-height:510px;overflow:auto"></div></section>
 </main><script>
-const $=id=>document.getElementById(id),N=5,A=['↑','→','↓','←'],names=['arriba','derecha','abajo','izquierda'],walls=new Set(),goal=4,start=20;let q=Array.from({length:25},()=>Array(4).fill(0)),state=start,episode=0,goals=0,lastReward=null,lastSteps=null,busy=false,history=[];
+const $=id=>document.getElementById(id),N=5,A=['↑','→','↓','←'],names=['arriba','derecha','abajo','izquierda'],walls=new Set(),goal=24,start=0;let q=Array.from({length:25},()=>Array(4).fill(0)),state=start,episode=0,goals=0,lastReward=null,lastSteps=null,busy=false,history=[];
 const row=s=>Math.floor(s/N),col=s=>s%N,valid=s=>s>=0&&s<25&&!walls.has(s);
 function nextState(s,a){let r=row(s),c=col(s);if(a===0)r--;if(a===1)c++;if(a===2)r++;if(a===3)c--;const next=r*N+c;return r<0||r>=N||c<0||c>=N||!valid(next)?s:next}
 function reward(s){return s===goal?1:-.04}function terminal(s){return s===goal}function bestAction(s){const max=Math.max(...q[s]);return q[s].indexOf(max)}function policyAction(s){const max=Math.max(...q[s]),ties=q[s].map((value,a)=>value===max?a:null).filter(a=>a!==null);return ties[Math.floor(Math.random()*ties.length)]}function choose(s){return Math.random()<+$('epsilon').value?Math.floor(Math.random()*4):bestAction(s)}
