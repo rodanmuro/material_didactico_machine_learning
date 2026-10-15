@@ -458,6 +458,13 @@ canvas{
         <li><strong>Alta:</strong> asigna scores altos a la mayoría de positivos y bajos a la mayoría de negativos.</li>
       </ul>
       <p>
+        Los valores de esas columnas son <strong>scores o probabilidades estimadas de pertenecer a la clase 1, P(1)</strong>. Por ejemplo, en la tabla
+        <strong>Datos de prueba</strong>, el <strong>caso I</strong> tiene clase real <strong>1</strong> y el modelo de <strong>Alta</strong> discriminación
+        asigna <strong>0.72</strong>: en este material significa que estima un <strong>72% de probabilidad</strong> de que el caso pertenezca a la clase positiva.
+        Con el umbral en <strong>0.50</strong>, ese 0.72 se convierte en <strong>Pred. = 1</strong>; si subes el umbral a 0.80, el mismo score se convierte
+        en <strong>Pred. = 0</strong>. El score no cambia: cambia la regla usada para decidir la clase final.
+      </p>
+      <p>
         La idea central no es contar solo aciertos, sino comparar <strong>qué tan bien ordena el modelo los casos de ambas clases</strong>.
         Esa diferencia se refleja en la forma de la curva ROC y en el valor del AUC.
       </p>
