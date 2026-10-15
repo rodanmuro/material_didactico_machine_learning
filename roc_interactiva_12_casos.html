@@ -491,35 +491,35 @@ canvas{
         <table>
           <thead>
             <tr>
-              <th>Caso</th>
-              <th>Real</th>
+              <th title="Identificador de cada observación del conjunto de prueba.">Caso</th>
+              <th title="Clase verdadera conocida de la observación: 1 significa positivo real y 0 significa negativo real.">Real</th>
 
               <th class="score-head">
-                <label title="Mostrar u ocultar modelo de baja discriminacion">
+                <label title="Score o probabilidad P(1) asignada por el modelo de baja discriminación. Sus scores separan poco los positivos reales de los negativos reales. La casilla muestra u oculta su curva ROC.">
                   <input type="checkbox" class="series-toggle" data-series="poor" checked>
                   <span class="swatch poor"></span>
                   Baja discr.
                 </label>
               </th>
-              <th class="pred-head">Pred.</th>
+              <th class="pred-head" title="Predicción binaria del modelo de baja discriminación al aplicar el umbral seleccionado: 1 si el score alcanza el umbral; 0 si no lo alcanza.">Pred.</th>
 
               <th class="score-head">
-                <label title="Mostrar u ocultar modelo de discriminacion media">
+                <label title="Score o probabilidad P(1) asignada por el modelo de discriminación media. Separa las clases mejor que el modelo de baja discriminación. La casilla muestra u oculta su curva ROC.">
                   <input type="checkbox" class="series-toggle" data-series="medium" checked>
                   <span class="swatch medium"></span>
                   Discr. media
                 </label>
               </th>
-              <th class="pred-head">Pred.</th>
+              <th class="pred-head" title="Predicción binaria del modelo de discriminación media al aplicar el umbral seleccionado: 1 si el score alcanza el umbral; 0 si no lo alcanza.">Pred.</th>
 
               <th class="score-head">
-                <label title="Mostrar u ocultar modelo de alta discriminacion">
+                <label title="Score o probabilidad P(1) asignada por el modelo de alta discriminación. Tiende a asignar scores altos a positivos reales y bajos a negativos reales. La casilla muestra u oculta su curva ROC.">
                   <input type="checkbox" class="series-toggle" data-series="strong" checked>
                   <span class="swatch strong"></span>
                   Alta discr.
                 </label>
               </th>
-              <th class="pred-head">Pred.</th>
+              <th class="pred-head" title="Predicción binaria del modelo de alta discriminación al aplicar el umbral seleccionado: 1 si el score alcanza el umbral; 0 si no lo alcanza.">Pred.</th>
             </tr>
           </thead>
           <tbody id="dataBody"></tbody>
