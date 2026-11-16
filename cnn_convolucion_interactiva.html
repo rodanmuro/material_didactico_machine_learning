@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CNN interactiva: filtros y mapas de características</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<style>
+:root{--ink:#173044;--muted:#607387;--paper:#fffefa;--line:#d2dfd8;--blue:#1769aa;--teal:#087d78;--orange:#dc6c22;--sky:#e7f1fb;--mint:#e7f4ee;--warm:#fff0d7;--dark:#173847}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:radial-gradient(circle at 8% 0,#dcefe8 0,transparent 32%),linear-gradient(135deg,#f6f2e9,#edf5f1);font:16px "Trebuchet MS",sans-serif}main{width:95vw;margin:auto;padding:28px 0 45px}h1,h2,h3{font-family:Georgia,serif}h1{margin:0;font-size:clamp(2rem,4vw,3.3rem);letter-spacing:-.035em}h2{margin:0 0 8px;font-size:1.4rem}h3{margin:0 0 7px;font-size:1.05rem}.lead,.note{color:var(--muted);line-height:1.48}.lead{max-width:1100px;margin:10px 0 20px}.note{margin:0 0 10px}.card{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:17px;box-shadow:0 10px 26px #16384412}.intro,.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}.training-data{margin-bottom:16px}.training-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:11px;background:#f8fbf9}.training-grid{display:grid;grid-template-columns:repeat(24,104px);gap:9px;width:max-content;padding:12px}.training-example{padding:7px;border:2px solid #b8cfc4;border-radius:9px;background:#fffefa}.training-example.c0{border-color:#1769aa}.training-example.c1{border-color:#087d78}.training-example.c2{border-color:#dc6c22}.training-example.c3{border-color:#8259a4}.training-label{display:block;margin-bottom:5px;text-align:center;font-size:11px;font-weight:bold;white-space:nowrap}.sample-pixels{display:grid;grid-template-columns:repeat(9,1fr);gap:1px;width:82px;margin:auto;border:1px solid #203b4b;background:#203b4b}.sample-pixels i{display:block;aspect-ratio:1;background:#fff}.sample-pixels i.on{background:#2086b8}.controls{display:grid;grid-template-columns:minmax(220px,330px) minmax(190px,260px) auto 1fr;gap:12px;align-items:center;margin-bottom:16px}.control{padding:11px 13px;border-radius:12px;background:var(--sky)}.control label{display:block;font-weight:bold;margin-bottom:7px}.control select,.control input{width:100%;padding:8px;border:1px solid #b9ccc2;border-radius:7px;background:#fff;font:inherit;color:var(--ink)}.control input[type=range]{padding:0;accent-color:var(--blue)}button{padding:10px 13px;border:0;border-radius:9px;background:var(--blue);color:#fff;font:700 15px "Trebuchet MS",sans-serif;cursor:pointer}button.alt{background:#edf2ee;color:var(--ink);border:1px solid #c8d8d0}button:disabled{opacity:.55;cursor:wait}.status{color:var(--muted)}.architecture{margin-bottom:16px}.diagram-wrap{overflow-x:auto;padding-bottom:6px;border:1px solid var(--line);border-radius:12px;background:#f9fcfa}.cnn-diagram{display:block;min-width:2050px;width:100%;height:auto;min-height:1220px}.cnn-diagram text{fill:var(--ink);font-family:"Trebuchet MS",sans-serif}.cnn-diagram .layer-title{font:700 24px Georgia,serif}.cnn-diagram .node-title{font:700 16px Georgia,serif}.cnn-diagram .node-caption{font-size:13px;fill:var(--muted)}.cnn-diagram .node-box{fill:#fffefa;stroke:#9fbbb0;stroke-width:1.5}.cnn-diagram .filter-box{fill:#e7f1fb;stroke:#1769aa;stroke-width:1.7}.cnn-diagram .filter-box.active{fill:#fff0d7;stroke:#dc6c22;stroke-width:3}.cnn-diagram .matrix-frame{fill:#fdfefd;stroke:#173044;stroke-width:1.7}.cnn-diagram .pixel{stroke:#111827;stroke-width:1}.cnn-diagram .clickable{cursor:pointer}.cnn-diagram .clickable:hover{stroke:#dc6c22;stroke-width:2}.cnn-diagram .link{stroke:#1769aa;stroke-width:2;fill:none;opacity:.76}.cnn-diagram .link.secondary{stroke:#087d78;opacity:.56}.cnn-diagram .ellipsis{font:700 36px Georgia,serif;fill:#78918a}.matrix{display:grid;gap:2px;width:min(100%,210px);margin:auto}.cell{display:grid;place-items:center;aspect-ratio:1;border-radius:2px;font:11px Consolas,monospace;user-select:none}.local{margin-bottom:16px}.local-header{display:flex;justify-content:space-between;align-items:baseline;gap:15px;flex-wrap:wrap}.position{padding:9px 12px;border-radius:9px;background:var(--warm);font:14px Consolas,monospace}.calc-grid{margin:12px 0 0;grid-template-columns:repeat(4,1fr)}.calc-box{min-width:0;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fbfdfc}.calc-box .matrix{width:150px}.calc-box .cell{font-size:12px}.formula{padding:12px;border-radius:10px;background:#193943;color:#eaf6f0;font:13px Consolas,monospace;line-height:1.65;overflow:auto}.formula strong{color:#ffe0b6}.how{margin-top:16px}.how ol{margin:8px 0 0;padding-left:22px;line-height:1.55}.legend{display:flex;gap:13px;flex-wrap:wrap;margin:8px 0 0;color:var(--muted);font-size:.88rem}.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}@media(max-width:820px){main{width:94vw;padding-top:20px}.intro,.calc-grid,.controls{grid-template-columns:1fr}.calc-box .matrix{width:180px}}
+</style>
+<style>
+.architecture-overview{margin:18px 0 16px}.architecture-scroll{overflow-x:auto;padding-bottom:4px;border:1px solid var(--line);border-radius:12px;background:#f9fcfa}.architecture-scheme{display:block;min-width:1850px;width:100%;height:auto}.architecture-scheme text{fill:var(--ink);font-family:"Trebuchet MS",sans-serif}.architecture-scheme .layer{font:700 21px Georgia,serif}.architecture-scheme .node{stroke-width:2}.architecture-scheme .input{fill:#e8f1fb;stroke:#3775a1}.architecture-scheme .conv{fill:#fff0d9;stroke:#dc6c22}.architecture-scheme .map{fill:#e8f5ef;stroke:#087d78}.architecture-scheme .flat{fill:#eeeafa;stroke:#8259a4}.architecture-scheme .node-name{font-weight:bold;font-size:14px}.architecture-scheme .node-note{font-size:12px;fill:var(--muted)}.architecture-scheme .arrow{stroke:#1769aa;stroke-width:2;fill:none}.architecture-scheme .combine{stroke:#087d78;stroke-width:1.5;opacity:.48;fill:none}.training-types{display:flex;flex-wrap:wrap;gap:7px 18px;margin:8px 0 12px;padding-left:21px;color:var(--muted);font-size:.92rem}.training-types strong{color:var(--ink)}.training-example.c4{border-color:#c35482}.training-example.c5{border-color:#6b7c30}.training-example.c6{border-color:#4e72bd}.training-label{font-size:10px}.stop{background:#a9432b}
+  /* Refuerzo de legibilidad: contraste y escala de texto. */
+  :root{--ink:#102c42;--muted:#3d566c;--line:#c6d5ce;--orange:#c95d16}
+  body{font-size:17px}
+  .lead,.note{line-height:1.58}
+  .training-types{font-size:1rem}
+  .training-label{font-size:12px}
+  .status{font-size:1rem;font-weight:600}
+  .cnn-diagram .node-caption{font-size:14px}
+  .cnn-diagram .node-title{font-size:17px}
+  .architecture-scheme .node-name{font-size:15px}
+  .architecture-scheme .node-note{font-size:13px}
+  .architecture-scheme .layer{font-size:22px}
+  .diagram-zoom{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 12px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--sky)}
+  .diagram-zoom strong{margin-right:3px}
+  .diagram-zoom button{min-width:38px;padding:5px 10px;font-size:18px;line-height:1}
+  .diagram-zoom input{width:min(260px,45vw);accent-color:var(--blue)}
+  .diagram-zoom output{min-width:50px;font-weight:700;color:var(--ink);text-align:right}
+  .filter-selects{display:flex;gap:10px}.filter-selects span{flex:1}.filter-selects label{font-size:.82rem;margin:0 0 3px}.filter-selects select{width:100%;padding:5px}
+  .diagram-wrap{overflow:auto;max-height:1160px}
+  .diagram-wrap,.architecture-scroll{cursor:grab;touch-action:none}
+  .diagram-wrap.is-panning,.architecture-scroll.is-panning{cursor:grabbing;user-select:none}
+  .cnn-diagram{min-width:2500px;min-height:2250px}
+</style>
+</head>
+<body>
+<main>
+  <h1>CNN: de píxeles a mapas de características</h1>
+  <p class="lead">Este prototipo muestra la <strong>propagación hacia adelante</strong> de una red convolucional. No pretende reconocer una imagen real todavía: permite observar cómo un mismo filtro reutiliza sus pesos al recorrer una imagen y cómo capas posteriores combinan varios mapas.</p>
+
+  <section class="card architecture-overview">
+    <h2>Arquitectura a evaluar</h2>
+    <p class="note">Este es el esquema completo de la CNN que se entrena en esta página. Es una guía estructural: el diagrama interactivo posterior muestra los pesos y mapas que cambian durante el entrenamiento.</p>
+    <div class="architecture-scroll"><svg id="architectureScheme" class="architecture-scheme" viewBox="0 0 1850 820" role="img" aria-label="Esquema de la arquitectura CNN">
+      <defs><marker id="archArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1769aa"/></marker></defs>
+      <text class="layer" x="105" y="42" text-anchor="middle">Entrada</text><text class="layer" x="365" y="42" text-anchor="middle">Convolución 1</text><text class="layer" x="615" y="42" text-anchor="middle">Mapas 1</text><text class="layer" x="985" y="42" text-anchor="middle">Convolución 2</text><text class="layer" x="1245" y="42" text-anchor="middle">Mapas 2</text><text class="layer" x="1545" y="42" text-anchor="middle">Clasificador</text>
+      <path class="arrow" marker-end="url(#archArrow)" d="M180 410 L285 145"/><path class="arrow" marker-end="url(#archArrow)" d="M180 410 L285 305"/><path class="arrow" marker-end="url(#archArrow)" d="M180 410 L285 465"/><path class="arrow" marker-end="url(#archArrow)" d="M180 410 L285 625"/>
+      <path class="arrow" marker-end="url(#archArrow)" d="M445 145 L535 145"/><path class="arrow" marker-end="url(#archArrow)" d="M445 305 L535 305"/><path class="arrow" marker-end="url(#archArrow)" d="M445 465 L535 465"/><path class="arrow" marker-end="url(#archArrow)" d="M445 625 L535 625"/>
+      <g class="combine"><path d="M695 145 L905 115"/><path d="M695 305 L905 115"/><path d="M695 465 L905 115"/><path d="M695 625 L905 115"/><path d="M695 145 L905 245"/><path d="M695 305 L905 245"/><path d="M695 465 L905 245"/><path d="M695 625 L905 245"/><path d="M695 145 L905 375"/><path d="M695 305 L905 375"/><path d="M695 465 L905 375"/><path d="M695 625 L905 375"/><path d="M695 145 L905 505"/><path d="M695 305 L905 505"/><path d="M695 465 L905 505"/><path d="M695 625 L905 505"/><path d="M695 145 L905 635"/><path d="M695 305 L905 635"/><path d="M695 465 L905 635"/><path d="M695 625 L905 635"/></g>
+      <path class="arrow" marker-end="url(#archArrow)" d="M1065 115 L1165 115"/><path class="arrow" marker-end="url(#archArrow)" d="M1065 245 L1165 245"/><path class="arrow" marker-end="url(#archArrow)" d="M1065 375 L1165 375"/><path class="arrow" marker-end="url(#archArrow)" d="M1065 505 L1165 505"/><path class="arrow" marker-end="url(#archArrow)" d="M1065 635 L1165 635"/>
+      <path class="arrow" marker-end="url(#archArrow)" d="M1325 115 L1460 360"/><path class="arrow" marker-end="url(#archArrow)" d="M1325 245 L1460 360"/><path class="arrow" marker-end="url(#archArrow)" d="M1325 375 L1460 360"/><path class="arrow" marker-end="url(#archArrow)" d="M1325 505 L1460 360"/><path class="arrow" marker-end="url(#archArrow)" d="M1325 635 L1460 360"/><path class="arrow" marker-end="url(#archArrow)" d="M1590 410 L1690 410"/>
+      <g><rect class="node input" x="35" y="335" width="145" height="150" rx="13"/><text class="node-name" x="107" y="387" text-anchor="middle">imagen</text><text class="node-note" x="107" y="410" text-anchor="middle">9 × 9 × 1</text><text class="node-note" x="107" y="433" text-anchor="middle">entrada binaria</text></g>
+      <g><rect class="node conv" x="285" y="100" width="160" height="90" rx="11"/><text class="node-name" x="365" y="136" text-anchor="middle">filtro_1_1</text><text class="node-note" x="365" y="160" text-anchor="middle">3 × 3 × 1 + ReLU</text><rect class="node conv" x="285" y="260" width="160" height="90" rx="11"/><text class="node-name" x="365" y="296" text-anchor="middle">filtro_2_1</text><text class="node-note" x="365" y="320" text-anchor="middle">3 × 3 × 1 + ReLU</text><rect class="node conv" x="285" y="420" width="160" height="90" rx="11"/><text class="node-name" x="365" y="456" text-anchor="middle">filtro_3_1</text><text class="node-note" x="365" y="480" text-anchor="middle">3 × 3 × 1 + ReLU</text><rect class="node conv" x="285" y="580" width="160" height="90" rx="11"/><text class="node-name" x="365" y="616" text-anchor="middle">filtro_4_1</text><text class="node-note" x="365" y="640" text-anchor="middle">3 × 3 × 1 + ReLU</text></g>
+      <g><rect class="node map" x="535" y="100" width="160" height="90" rx="11"/><text class="node-name" x="615" y="136" text-anchor="middle">mapa_1_1</text><text class="node-note" x="615" y="160" text-anchor="middle">7 × 7</text><rect class="node map" x="535" y="260" width="160" height="90" rx="11"/><text class="node-name" x="615" y="296" text-anchor="middle">mapa_2_1</text><text class="node-note" x="615" y="320" text-anchor="middle">7 × 7</text><rect class="node map" x="535" y="420" width="160" height="90" rx="11"/><text class="node-name" x="615" y="456" text-anchor="middle">mapa_3_1</text><text class="node-note" x="615" y="480" text-anchor="middle">7 × 7</text><rect class="node map" x="535" y="580" width="160" height="90" rx="11"/><text class="node-name" x="615" y="616" text-anchor="middle">mapa_4_1</text><text class="node-note" x="615" y="640" text-anchor="middle">7 × 7</text></g>
+      <g><rect class="node conv" x="905" y="70" width="160" height="90" rx="11"/><text class="node-name" x="985" y="106" text-anchor="middle">filtro_1_2</text><text class="node-note" x="985" y="130" text-anchor="middle">3 × 3 × 4 + ReLU</text><rect class="node conv" x="905" y="200" width="160" height="90" rx="11"/><text class="node-name" x="985" y="236" text-anchor="middle">filtro_2_2</text><text class="node-note" x="985" y="260" text-anchor="middle">3 × 3 × 4 + ReLU</text><rect class="node conv" x="905" y="330" width="160" height="90" rx="11"/><text class="node-name" x="985" y="366" text-anchor="middle">filtro_3_2</text><text class="node-note" x="985" y="390" text-anchor="middle">3 × 3 × 4 + ReLU</text><rect class="node conv" x="905" y="460" width="160" height="90" rx="11"/><text class="node-name" x="985" y="496" text-anchor="middle">filtro_4_2</text><text class="node-note" x="985" y="520" text-anchor="middle">3 × 3 × 4 + ReLU</text><rect class="node conv" x="905" y="590" width="160" height="90" rx="11"/><text class="node-name" x="985" y="626" text-anchor="middle">filtro_5_2</text><text class="node-note" x="985" y="650" text-anchor="middle">3 × 3 × 4 + ReLU</text></g>
+      <g><rect class="node map" x="1165" y="70" width="160" height="90" rx="11"/><text class="node-name" x="1245" y="106" text-anchor="middle">mapa_1_2</text><text class="node-note" x="1245" y="130" text-anchor="middle">5 × 5</text><rect class="node map" x="1165" y="200" width="160" height="90" rx="11"/><text class="node-name" x="1245" y="236" text-anchor="middle">mapa_2_2</text><text class="node-note" x="1245" y="260" text-anchor="middle">5 × 5</text><rect class="node map" x="1165" y="330" width="160" height="90" rx="11"/><text class="node-name" x="1245" y="366" text-anchor="middle">mapa_3_2</text><text class="node-note" x="1245" y="390" text-anchor="middle">5 × 5</text><rect class="node map" x="1165" y="460" width="160" height="90" rx="11"/><text class="node-name" x="1245" y="496" text-anchor="middle">mapa_4_2</text><text class="node-note" x="1245" y="520" text-anchor="middle">5 × 5</text><rect class="node map" x="1165" y="590" width="160" height="90" rx="11"/><text class="node-name" x="1245" y="626" text-anchor="middle">mapa_5_2</text><text class="node-note" x="1245" y="650" text-anchor="middle">5 × 5</text></g>
+      <g><rect class="node flat" x="1460" y="345" width="130" height="130" rx="13"/><text class="node-name" x="1525" y="392" text-anchor="middle">Flatten</text><text class="node-note" x="1525" y="417" text-anchor="middle">125 valores</text><rect class="node flat" x="1690" y="345" width="130" height="130" rx="13"/><text class="node-name" x="1755" y="392" text-anchor="middle">Softmax</text><text class="node-note" x="1755" y="417" text-anchor="middle">7 clases</text></g>
+      <text class="node-note" x="800" y="745" text-anchor="middle">Cada filtro de la capa 2 recibe los cuatro mapas de la capa 1.</text>
+    </svg></div>
+  </section>
+
+  <section class="intro">
+    <article class="card"><h2>¿Qué aprende un filtro?</h2><p class="note">Un filtro <strong>3 × 3</strong> tiene 9 pesos y un sesgo. Se desplaza por la imagen: en cada ubicación toma una ventana local, multiplica píxel a píxel, suma, añade su sesgo y aplica ReLU. Sus parámetros se reutilizan en todas las posiciones.</p></article>
+    <article class="card"><h2>Cómo leer la demostración</h2><p class="note">Blanco significa intensidad baja y azul intensidad alta. Pulsa una celda de la imagen o del mapa para ver el cálculo local. Al inicio, los filtros tienen pesos aleatorios; al entrenar, sus pesos y sus mapas cambian cada medio segundo.</p></article>
+  </section>
+
+  <section class="card training-data">
+    <h2>0. Conjunto de entrenamiento: 168 imágenes etiquetadas</h2>
+    <p class="note">Estas son las imágenes binarias 9 × 9 que la CNN usa para aprender. Cada clase contiene 24 variaciones con ruido leve: algunos píxeles cambian, pero la figura y su etiqueta se conservan. Esto obliga a los filtros a aprender patrones y no una copia exacta de una sola matriz.</p>
+    <ul class="training-types"><li><strong>Cruz (+):</strong> intersección vertical y horizontal.</li><li><strong>Barra vertical:</strong> trazo orientado arriba-abajo.</li><li><strong>Barra horizontal:</strong> trazo orientado izquierda-derecha.</li><li><strong>Esquina (L):</strong> combinación de dos trazos.</li><li><strong>X:</strong> dos diagonales que se cruzan.</li><li><strong>Círculo:</strong> contorno cerrado aproximado.</li><li><strong>T:</strong> barra superior con trazo vertical central.</li></ul>
+    <p class="note">El esquema de abajo muestra <strong>solo una imagen de ejemplo y los filtros compartidos</strong>; durante una época, la CNN procesa este conjunto completo de 168 figuras.</p>
+    <div class="training-scroll"><div id="trainingGrid" class="training-grid"></div></div>
+  </section>
+
+  <section class="controls">
+    <div class="control"><label for="shape">Imagen de ejemplo 9 × 9</label><select id="shape"><option value="cross">Cruz</option><option value="vertical">Barra vertical</option><option value="horizontal">Barra horizontal</option><option value="corner">Esquina</option><option value="x">X</option><option value="circle">Círculo</option><option value="t">T</option></select></div>
+    <div class="control"><label for="epochs">Épocas a entrenar <output id="epochsValue">20</output></label><input id="epochs" type="range" min="1" max="100" step="1" value="20"></div>
+    <div class="control"><label>Filtros por capa</label><div class="filter-selects"><span><label for="filters1">Convolucional 1</label><select id="filters1" title="Número de filtros de la primera convolución."><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></span><span><label for="filters2">Convolucional 2</label><select id="filters2" title="Número de filtros de la segunda convolución."><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option></select></span></div></div>
+    <div class="control"><label for="learningRate">Tasa de aprendizaje de Adam</label><select id="learningRate" title="Controla el tamaño de los cambios de los pesos en cada actualización. Cambiarla reinicia la CNN para comparar entrenamientos desde cero."><option value="0.0001">0.0001 · muy lenta</option><option value="0.0003">0.0003 · lenta</option><option value="0.001">0.001 · referencia</option><option value="0.003" selected>0.003 · gradual</option><option value="0.005">0.005 · moderada</option><option value="0.01">0.01 · rápida</option><option value="0.02">0.02 · muy rápida</option><option value="0.05">0.05 · agresiva</option><option value="0.1">0.1 · inestable</option><option value="0.2">0.2 · puede divergir</option></select></div>
+    <div><button id="train" title="Entrena una CNN real con patrones 9×9: ejecuta una época cada 250 ms y redibuja los pesos aprendidos después de cada una.">▶ Entrenar 20 épocas</button> <button id="stop" class="stop" disabled title="Solicita detener el entrenamiento. La CNN termina la época en curso para no interrumpir una actualización de pesos a mitad de camino.">■ Detener</button> <button id="resetModel" class="alt" title="Crea pesos iniciales aleatorios nuevos y reinicia el contador de épocas. No modifica la imagen que estás explorando.">Nueva CNN</button> <button id="clear" class="alt" title="Borra la imagen para que puedas dibujar tu propio patrón encendiendo y apagando píxeles.">Limpiar y dibujar</button></div>
+    <div id="status" class="status">Cargando TensorFlow.js y creando pesos aleatorios...</div>
+  </section>
+
+  <section class="card architecture">
+    <h2>1. Vista de arquitectura</h2>
+    <p class="note">La lectura es de izquierda a derecha. En la capa 2, cada filtro recibe el <strong>tensor completo</strong> de mapas de la capa 1. Usa la barra inferior para desplazarte horizontalmente; pulsa una imagen, un filtro o un mapa de la capa 1 para inspeccionar su cálculo.</p>
+    <div class="diagram-zoom" aria-label="Controles de zoom de la arquitectura">
+      <strong>Zoom del diagrama</strong>
+      <button id="architectureZoomOut" class="alt" type="button" title="Reduce el tamaño de la vista de arquitectura.">−</button>
+      <input id="architectureZoom" type="range" min="70" max="180" step="10" value="100" aria-label="Nivel de zoom de la arquitectura">
+      <button id="architectureZoomIn" class="alt" type="button" title="Amplía el tamaño de la vista de arquitectura.">+</button>
+      <button id="architectureZoomReset" class="alt" type="button" title="Restablece el zoom al 100 por ciento.">100%</button>
+      <output id="architectureZoomValue" for="architectureZoom">100%</output>
+    </div>
+    <div class="diagram-wrap"><svg id="cnnDiagram" class="cnn-diagram" viewBox="0 -500 2500 2250" role="img" aria-label="Arquitectura de dos capas convolucionales"></svg></div>
+    <div class="legend"><span><i class="swatch" style="background:#f7fbfa;border:1px solid #ccd8d3"></i>activación baja</span><span><i class="swatch" style="background:#1c719f"></i>activación alta</span><span><i class="swatch" style="background:#f5c48e"></i>filtro seleccionado</span><span>Las flechas de los mapas hacia cada filtro de capa 2 representan una combinación de canales.</span></div>
+  </section>
+
+  <section class="card local">
+    <div class="local-header"><div><h2>2. Cálculo local en una posición</h2><p class="note">Se muestra el cálculo de <code>filtro_1_1</code> sobre la ventana seleccionada. La celda resaltada del mapa es el resultado tras ReLU.</p></div><div id="position" class="position">ventana [0, 0] → mapa_1_1[0, 0]</div></div>
+    <div class="calc-grid">
+      <article class="calc-box"><h3>Ventana de imagen</h3><div id="patch"></div></article>
+      <article class="calc-box"><h3>Pesos de filtro_1_1</h3><div id="filterDetail"></div></article>
+      <article class="calc-box"><h3>Productos píxel × peso</h3><div id="products"></div></article>
+      <article class="calc-box"><h3>Resultado</h3><div id="resultExplain" class="formula"></div></article>
+    </div>
+  </section>
+
+  <section class="card how"><h2>3. Ideas clave para llevarse</h2><ol><li>Un mapa de características indica <strong>dónde</strong> el patrón buscado por un filtro se activa con mayor fuerza.</li><li>En la capa 2, cada filtro combina ventanas alineadas de <strong>todos</strong> los mapas de la capa 1; por eso su profundidad coincide con la cantidad de filtros elegida para esa primera capa.</li><li>Al entrenar, backpropagation ajusta los pesos de ambas capas; esta visualización lee esos pesos reales y vuelve a calcular los mapas después de cada época.</li></ol></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const randomWeight=()=>+(Math.random()*.36-.18).toFixed(3);
+const randomMatrix=(channels=1)=>Array.from({length:channels},()=>Array.from({length:3},()=>Array.from({length:3},randomWeight)));
+let filters=[];
+let filters2=[];
+let active={filter:0,row:2,col:2},model=null,trainX=null,trainY=null,training=false,stopRequested=false,epoch=0,trainingExamples=[];
+const patterns={
+ cross:[[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[1,1,1,1,1,1,1,1,1],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,0,1,0,0,0,0]],
+ vertical:[[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0]],
+ horizontal:[[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]],
+ corner:[[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,1,1,1,1,1,0,0],[0,0,1,0,0,0,0,0,0],[0,0,1,0,0,0,0,0,0],[0,0,1,0,0,0,0,0,0],[0,0,1,0,0,0,0,0,0],[0,0,1,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]],
+ x:[[1,0,0,0,0,0,0,0,1],[0,1,0,0,0,0,0,1,0],[0,0,1,0,0,0,1,0,0],[0,0,0,1,0,1,0,0,0],[0,0,0,0,1,0,0,0,0],[0,0,0,1,0,1,0,0,0],[0,0,1,0,0,0,1,0,0],[0,1,0,0,0,0,0,1,0],[1,0,0,0,0,0,0,0,1]],
+ circle:[[0,0,1,1,1,1,1,0,0],[0,1,1,0,0,0,1,1,0],[1,1,0,0,0,0,0,1,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,1],[1,1,0,0,0,0,0,1,1],[0,1,1,0,0,0,1,1,0],[0,0,1,1,1,1,1,0,0]],
+ t:[[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0]]
+};
+let image=patterns.cross.map(row=>[...row]);
+const classNames=["Cruz","Vertical","Horizontal","Esquina","X","Círculo","T"];
+let outputProbs=Array(classNames.length).fill(1/classNames.length);
+function makeTrainingData(){const values=[],labels=[],keys=Object.keys(patterns);trainingExamples=[];keys.forEach((key,label)=>{for(let copy=0;copy<24;copy++){const sample=patterns[key].map(row=>row.map(value=>Math.random()<.035?1-value:value));trainingExamples.push({sample,label,key,copy});values.push(...sample.flat());labels.push(...Array.from({length:keys.length},(_,i)=>i===label?1:0))}});return{features:tf.tensor4d(values,[keys.length*24,9,9,1]),targets:tf.tensor2d(labels,[keys.length*24,keys.length])}}
+function renderTrainingDataset(){$("trainingGrid").innerHTML=trainingExamples.map(({sample,label},index)=>'<article class="training-example c'+label+'" title="Figura '+(index+1)+' · clase: '+classNames[label]+'"><span class="training-label">Figura '+(index+1)+' · '+classNames[label]+'</span><div class="sample-pixels">'+sample.flat().map(value=>'<i class="'+(value?"on":"")+'"></i>').join("")+'</div></article>').join("")}
+function architectureConfig(){return{n1:+$("filters1").value,n2:+$("filters2").value,learningRate:+$("learningRate").value}}
+function initialiseVisualFilters(n1,n2){filters=Array.from({length:n1},(_,i)=>({name:`filtro_${i+1}_1`,desc:"pesos iniciales aleatorios",bias:0,weights:randomMatrix()[0]}));filters2=Array.from({length:n2},(_,i)=>({name:`filtro_${i+1}_2`,bias:0,weights:randomMatrix(n1)}))}
+function overviewRows(count,center,gap){return Array.from({length:count},(_,i)=>center-(count-1)*gap/2+i*gap)}
+function renderArchitectureOverview(n1,n2){const svg=$("architectureScheme"),c1=overviewRows(n1,385,160),c2=overviewRows(n2,385,130),box=(kind,x,y,name,note)=>`<g><rect class="node ${kind}" x="${x}" y="${y}" width="160" height="90" rx="11"/><text class="node-name" x="${x+80}" y="${y+36}" text-anchor="middle">${name}</text><text class="node-note" x="${x+80}" y="${y+60}" text-anchor="middle">${note}</text></g>`;let html=`<defs><marker id="archArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1769aa"/></marker></defs><text class="layer" x="105" y="42" text-anchor="middle">Entrada</text><text class="layer" x="365" y="42" text-anchor="middle">Convolución 1</text><text class="layer" x="615" y="42" text-anchor="middle">Mapas 1</text><text class="layer" x="985" y="42" text-anchor="middle">Convolución 2</text><text class="layer" x="1245" y="42" text-anchor="middle">Mapas 2</text><text class="layer" x="1545" y="42" text-anchor="middle">Clasificador</text>`;html+=box("input",35,335,"imagen","9 × 9 × 1");c1.forEach((y,i)=>{html+=`<path class="arrow" marker-end="url(#archArrow)" d="M180 410 L285 ${y+45}"/>`+box("conv",285,y,`filtro_${i+1}_1`,`3 × 3 × 1 + ReLU`)+`<path class="arrow" marker-end="url(#archArrow)" d="M445 ${y+45} L535 ${y+45}"/>`+box("map",535,y,`mapa_${i+1}_1`,`7 × 7`)});c2.forEach((y,i)=>{c1.forEach(sourceY=>{html+=`<path class="combine" d="M695 ${sourceY+45} L905 ${y+45}"/>`});html+=box("conv",905,y,`filtro_${i+1}_2`,`3 × 3 × ${n1} + ReLU`)+`<path class="arrow" marker-end="url(#archArrow)" d="M1065 ${y+45} L1165 ${y+45}"/>`+box("map",1165,y,`mapa_${i+1}_2`,`5 × 5`)+`<path class="arrow" marker-end="url(#archArrow)" d="M1325 ${y+45} L1460 410"/>`});html+=box("flat",1460,345,"Flatten",`${25*n2} valores`)+`<path class="arrow" marker-end="url(#archArrow)" d="M1620 410 L1690 410"/>`+box("flat",1690,345,"Softmax","7 clases")+`<text class="node-note" x="850" y="745" text-anchor="middle">Cada filtro de la capa 2 recibe los ${n1} mapas de la capa 1.</text>`;svg.innerHTML=html}
+function syncWeights(){const n1=filters.length,n2=filters2.length,[k1,b1]=model.getLayer("conv1").getWeights(),a1=Array.from(k1.dataSync()),v1=Array.from(b1.dataSync());filters.forEach((filter,out)=>{filter.weights=Array.from({length:3},(_,r)=>Array.from({length:3},(_,c)=>a1[((r*3+c)*n1)+out]));filter.bias=v1[out];filter.desc="pesos aprendidos · canal de salida "+(out+1)});const [k2,b2]=model.getLayer("conv2").getWeights(),a2=Array.from(k2.dataSync()),v2=Array.from(b2.dataSync());filters2.forEach((filter,out)=>{filter.weights=Array.from({length:n1},(_,ch)=>Array.from({length:3},(_,r)=>Array.from({length:3},(_,c)=>a2[(((r*3+c)*n1+ch)*n2)+out])));filter.bias=v2[out]})}
+function predictCurrentImage(){if(!model||!window.tf)return;const example=tf.tensor4d(image.flat(),[1,9,9,1]),prediction=model.predict(example);outputProbs=Array.from(prediction.dataSync());example.dispose();prediction.dispose()}
+function showInitialMetrics(){const raw=model.evaluate(trainX,trainY),metrics=Array.isArray(raw)?raw:[raw],values=metrics.map(t=>t.dataSync()[0]);metrics.forEach(t=>t.dispose());const loss=values[0],accuracy=values[1]||0,rate=$("learningRate").value;$("status").textContent="Época 0: pérdida (error inicial) "+loss.toFixed(4)+" · exactitud "+(accuracy*100).toFixed(1)+"% · tasa Adam "+rate+". La CNN aún tiene pesos aleatorios."}
+function createModel(){const {n1,n2,learningRate}=architectureConfig();if(model)model.dispose();initialiseVisualFilters(n1,n2);renderArchitectureOverview(n1,n2);active={filter:0,row:2,col:2};model=tf.sequential();model.add(tf.layers.conv2d({name:"conv1",inputShape:[9,9,1],filters:n1,kernelSize:3,activation:"relu",kernelInitializer:tf.initializers.randomNormal({stddev:.16}),biasInitializer:"zeros"}));model.add(tf.layers.conv2d({name:"conv2",filters:n2,kernelSize:3,activation:"relu",kernelInitializer:tf.initializers.randomNormal({stddev:.16}),biasInitializer:"zeros"}));model.add(tf.layers.flatten());model.add(tf.layers.dense({units:classNames.length,activation:"softmax"}));model.compile({optimizer:tf.train.adam(learningRate),loss:"categoricalCrossentropy",metrics:["accuracy"]});epoch=0;syncWeights();draw();showInitialMetrics()}
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function trainAnimated(){if(training||!model)return;const rounds=+$("epochs").value;training=true;stopRequested=false;["train","resetModel","shape","epochs","clear","filters1","filters2","learningRate"].forEach(id=>$(id).disabled=true);$("stop").disabled=false;try{for(let i=0;i<rounds&&!stopRequested;i++){const history=await model.fit(trainX,trainY,{epochs:1,batchSize:16,shuffle:true});epoch++;syncWeights();draw();const loss=history.history.loss[0],accuracy=(history.history.acc||history.history.accuracy||[0])[0];$("status").textContent=`Época ${epoch}: pérdida ${loss.toFixed(4)} · exactitud ${(accuracy*100).toFixed(1)}%. Los filtros se actualizaron; observa sus pesos y mapas.`;if(!stopRequested)await pause(250)}$("status").textContent=stopRequested?`Entrenamiento detenido en la época ${epoch}.`:`Entrenamiento terminado tras ${epoch} épocas. Puedes entrenar ${rounds} épocas adicionales o crear una CNN nueva.`}catch(error){console.error(error);$("status").textContent=`Error de entrenamiento: ${error.message||error}`}finally{training=false;["train","resetModel","shape","epochs","clear","filters1","filters2","learningRate"].forEach(id=>$(id).disabled=false);$("stop").disabled=true}}
+function conv(source,weights,bias=0){const h=source.length,w=source[0].length,out=[];for(let r=0;r<h-2;r++){const row=[];for(let c=0;c<w-2;c++){let z=bias;for(let i=0;i<3;i++)for(let j=0;j<3;j++)z+=source[r+i][c+j]*weights[i][j];row.push(Math.max(0,z))}out.push(row)}return out}
+function convMulti(maps,filter){const out=[];for(let r=0;r<maps[0].length-2;r++){const row=[];for(let c=0;c<maps[0][0].length-2;c++){let z=filter.bias;for(let ch=0;ch<maps.length;ch++)for(let i=0;i<3;i++)for(let j=0;j<3;j++)z+=maps[ch][r+i][c+j]*filter.weights[ch][i][j];row.push(Math.max(0,z))}out.push(row)}return out}
+function maxOf(matrix){return Math.max(...matrix.flat(),.001)}
+function color(v,max,selected=false){if(selected)return "#f5c48e";const t=Math.max(0,Math.min(1,v/max));return `hsl(202, ${20+t*55}%, ${98-t*52}%)`}
+function matrixHtml(matrix,cls="",click){const max=maxOf(matrix);return `<div class="matrix ${cls}" style="grid-template-columns:repeat(${matrix[0].length},1fr)">${matrix.map((row,r)=>row.map((v,c)=>`<div class="cell" data-r="${r}" data-c="${c}" style="background:${color(v,max,cls.includes("selected")&&r===active.row&&c===active.col)};color:${v/max>.58?'#fff':'#173044'}">${Number.isInteger(v)?v:v.toFixed(1)}</div>`).join("")).join("")}</div>`}
+function svgMatrix(matrix,x,y,cell,label,kind="map",index=0){const max=maxOf(matrix),w=matrix[0].length*cell,h=matrix.length*cell;let out=`<text class="node-title" x="${x+w/2}" y="${y-14}" text-anchor="middle">${label}</text><rect class="matrix-frame" x="${x-4}" y="${y-4}" width="${w+8}" height="${h+8}" rx="5"/>`;
+ matrix.forEach((row,r)=>row.forEach((v,c)=>{const chosen=kind==="map1"&&index===active.filter&&r===active.row&&c===active.col;const data=kind==="input"?`data-image="1" data-r="${r}" data-c="${c}"`:kind==="map1"?`data-map-filter="${index}" data-r="${r}" data-c="${c}"`:"";out+=`<rect class="pixel ${data?'clickable':''}" ${data} x="${x+c*cell}" y="${y+r*cell}" width="${cell}" height="${cell}" fill="${color(v,max,chosen)}"><title>${label}[${r}, ${c}] = ${v.toFixed(2)}</title></rect>`}));return out}
+function svgFilter(filter,x,y,index,layer){const activeClass=layer===1&&index===active.filter?" active":"",interaction=layer===1?`class="clickable" data-filter="${index}"`:"",format=v=>(Math.abs(v)<.005?"0.00":v.toFixed(2)),width=layer===1?330:350,height=layer===1?200:210;let out=`<g ${interaction}><rect class="filter-box${activeClass}" x="${x}" y="${y}" width="${width}" height="${height}" rx="14"/><text class="node-title" x="${x+width/2}" y="${y+34}" text-anchor="middle">${filter.name}</text><text class="node-caption" x="${x+width/2}" y="${y+59}" text-anchor="middle">${layer===1?filter.desc:"3 × 3 × "+filter.weights.length+" · combina mapas"}</text>`;if(layer===1){const cell=38,startX=x+(width-114)/2;filter.weights.forEach((row,r)=>row.forEach((v,c)=>{out+=`<rect x="${startX+c*cell}" y="${y+70+r*cell}" width="${cell-1}" height="${cell-1}" rx="3" fill="#ffffff" stroke="#b8ccda"/><text x="${startX+18+c*cell}" y="${y+94+r*cell}" text-anchor="middle" font-size="11">${format(v)}</text>`}))}else{filter.weights.forEach((weights,ch)=>{const col=ch%2,row=Math.floor(ch/2),px=x+20+col*170,py=y+83+row*62;out+=`<text x="${px+45}" y="${py-7}" text-anchor="middle" font-size="11">pesos mapa_${ch+1}_1</text>`;weights.forEach((values,r)=>values.forEach((v,c)=>{out+=`<rect x="${px+c*30}" y="${py+r*14}" width="29" height="13" rx="2" fill="#ffffff" stroke="#b8ccda"/><text x="${px+14+c*30}" y="${py+10+r*14}" text-anchor="middle" font-size="8">${format(v)}</text>`}))})}return out+`</g>`}
+function drawArchitecture(maps1,maps2){const svg=$("cnnDiagram"),p1=[[400,120],[400,400]],m1=[[850,165],[850,405]],p2=[[1210,90],[1210,290],[1210,490]],m2=[[1585,115],[1585,315],[1585,515]],input=[90,260];let html=`<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1769aa"/></marker></defs><text class="layer-title" x="166" y="43" text-anchor="middle">Capa de<tspan x="166" dy="25">entrada</tspan></text><text class="layer-title" x="565" y="43" text-anchor="middle">Capa<tspan x="565" dy="25">convolucional 1</tspan></text><text class="layer-title" x="909" y="43" text-anchor="middle">Mapas de<tspan x="909" dy="25">características 1</tspan></text><text class="layer-title" x="1340" y="43" text-anchor="middle">Capa<tspan x="1340" dy="25">convolucional 2</tspan></text><text class="layer-title" x="1627" y="43" text-anchor="middle">Mapas de<tspan x="1627" dy="25">características 2</tspan></text>`;
+ html+=svgMatrix(image,input[0],input[1],17,"imagen · 9 × 9 × 1","input");
+ filters.forEach((f,i)=>{html+=`<path class="link" marker-end="url(#arrow)" d="M243 337 L${p1[i][0]} ${p1[i][1]+100}"/>`;html+=svgFilter(f,p1[i][0],p1[i][1],i,1);html+=`<path class="link" marker-end="url(#arrow)" d="M730 ${p1[i][1]+100} L${m1[i][0]-11} ${m1[i][1]+60}"/>`;html+=svgMatrix(maps1[i],m1[i][0],m1[i][1],17,`mapa_${i+1}_1`,`map1`,i)});
+ html+=`<text class="ellipsis" x="565" y="650" text-anchor="middle">⋮</text><text class="ellipsis" x="909" y="650" text-anchor="middle">⋮</text><text class="node-caption" x="565" y="677" text-anchor="middle">más filtros de capa 1</text><text class="node-caption" x="909" y="677" text-anchor="middle">más mapas de capa 1</text>`;
+ filters2.forEach((f,i)=>{m1.forEach(source=>{html+=`<path class="link secondary" marker-end="url(#arrow)" d="M${source[0]+127} ${source[1]+60} L${p2[i][0]-8} ${p2[i][1]+71}"/>`});html+=svgFilter(f,p2[i][0],p2[i][1],i,2);html+=`<path class="link" marker-end="url(#arrow)" d="M1470 ${p2[i][1]+71} L${m2[i][0]-11} ${m2[i][1]+43}"/>`;html+=svgMatrix(maps2[i],m2[i][0],m2[i][1],17,`mapa_${i+1}_2`,`map2`,i)});
+ html+=`<text class="ellipsis" x="1340" y="685" text-anchor="middle">⋮</text><text class="ellipsis" x="1627" y="685" text-anchor="middle">⋮</text><text class="node-caption" x="1340" y="712" text-anchor="middle">más filtros de capa 2</text><text class="node-caption" x="1627" y="712" text-anchor="middle">más mapas de capa 2</text><text class="node-caption" x="1030" y="742" text-anchor="middle">Cada filtro de la capa 2 recibe todos los mapas de la capa 1 y produce un mapa nuevo.</text>`;svg.innerHTML=html;
+ svg.querySelectorAll("[data-image]").forEach(cell=>cell.addEventListener("click",()=>{const r=+cell.dataset.r,c=+cell.dataset.c;image[r][c]=image[r][c]?0:1;active.row=Math.min(6,Math.max(0,r-1));active.col=Math.min(6,Math.max(0,c-1));draw()}));svg.querySelectorAll("[data-map-filter]").forEach(cell=>cell.addEventListener("click",()=>{active.filter=+cell.dataset.mapFilter;active.row=+cell.dataset.r;active.col=+cell.dataset.c;draw()}));svg.querySelectorAll("[data-filter]").forEach(node=>node.addEventListener("click",()=>{active.filter=+node.dataset.filter;draw()}));}
+function drawArchitecture(maps1,maps2){const svg=$("cnnDiagram"),p1=[110,350,590,830].map(y=>[400,y]),m1=[150,390,630,870].map(y=>[850,y]),p2=[90,320,550,780,1010].map(y=>[1210,y]),m2=[150,380,610,840,1070].map(y=>[1680,y]),input=[90,490],title=(x,a,b)=>`<text class="layer-title" x="${x}" y="43" text-anchor="middle">${a}<tspan x="${x}" dy="25">${b}</tspan></text>`;let html=`<defs><marker id="arrowWide" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1769aa"/></marker></defs>`+title(166,"Capa de","entrada")+title(565,"Capa","convolucional 1")+title(909,"Mapas de","características 1")+title(1385,"Capa","convolucional 2")+title(1722,"Mapas de","características 2");html+=svgMatrix(image,input[0],input[1],17,"imagen · 9 × 9 × 1","input");filters.forEach((filter,index)=>{html+=`<path class="link" marker-end="url(#arrowWide)" d="M243 566 L${p1[index][0]} ${p1[index][1]+100}"/>`;html+=svgFilter(filter,p1[index][0],p1[index][1],index,1);html+=`<path class="link" marker-end="url(#arrowWide)" d="M730 ${p1[index][1]+100} L${m1[index][0]-11} ${m1[index][1]+60}"/>`;html+=svgMatrix(maps1[index],m1[index][0],m1[index][1],17,`mapa_${index+1}_1`,"map1",index)});filters2.forEach((filter,index)=>{m1.forEach(source=>{html+=`<path class="link secondary" marker-end="url(#arrowWide)" d="M${source[0]+119} ${source[1]+60} L${p2[index][0]-8} ${p2[index][1]+105}"/>`});html+=svgFilter(filter,p2[index][0],p2[index][1],index,2);html+=`<path class="link" marker-end="url(#arrowWide)" d="M1560 ${p2[index][1]+105} L${m2[index][0]-11} ${m2[index][1]+43}"/>`;html+=svgMatrix(maps2[index],m2[index][0],m2[index][1],17,`mapa_${index+1}_2`,"map2",index)});html+=`<text class="ellipsis" x="565" y="1095" text-anchor="middle">⋮</text><text class="ellipsis" x="909" y="1095" text-anchor="middle">⋮</text><text class="node-caption" x="565" y="1122" text-anchor="middle">más filtros de capa 1</text><text class="node-caption" x="909" y="1122" text-anchor="middle">más mapas de capa 1</text><text class="ellipsis" x="1385" y="1170" text-anchor="middle">⋮</text><text class="ellipsis" x="1722" y="1170" text-anchor="middle">⋮</text><text class="node-caption" x="1385" y="1197" text-anchor="middle">más filtros de capa 2</text><text class="node-caption" x="1722" y="1197" text-anchor="middle">más mapas de capa 2</text><text class="node-caption" x="1050" y="1230" text-anchor="middle">Cada filtro de la capa 2 recibe los cuatro mapas de la capa 1 y produce un mapa nuevo.</text>`;svg.innerHTML=html;svg.querySelectorAll("[data-image]").forEach(cell=>cell.addEventListener("click",()=>{const r=+cell.dataset.r,c=+cell.dataset.c;image[r][c]=image[r][c]?0:1;active.row=Math.min(6,Math.max(0,r-1));active.col=Math.min(6,Math.max(0,c-1));draw()}));svg.querySelectorAll("[data-map-filter]").forEach(cell=>cell.addEventListener("click",()=>{active.filter=+cell.dataset.mapFilter;active.row=+cell.dataset.r;active.col=+cell.dataset.c;draw()}));svg.querySelectorAll("[data-filter]").forEach(node=>node.addEventListener("click",()=>{active.filter=+node.dataset.filter;draw()}))}
+function draw(){const maps1=filters.map(f=>conv(image,f.weights,f.bias)),maps2=filters2.map(f=>convMulti(maps1,f));predictCurrentImage();drawArchitecture(maps1,maps2);[...$("cnnDiagram").querySelectorAll("text")].filter(node=>/^(⋮|más filtros de capa [12]|más mapas de capa [12])$/.test(node.textContent.trim())).forEach(node=>node.remove());renderCalculation();}
+function renderCalculation(){const f=filters[active.filter],r=active.row,c=active.col,patch=image.slice(r,r+3).map(row=>row.slice(c,c+3)),products=patch.map((row,i)=>row.map((v,j)=>v*f.weights[i][j]));const sum=products.flat().reduce((a,b)=>a+b,0),z=sum+f.bias,a=Math.max(0,z);$("position").textContent=`ventana [${r}, ${c}] → ${f.name.replace("filtro","mapa")}[${r}, ${c}]`;$("patch").innerHTML=matrixHtml(patch);$("filterDetail").innerHTML=matrixHtml(f.weights);$("products").innerHTML=matrixHtml(products);$("resultExplain").innerHTML=`Σ(píxel × peso) = <strong>${sum.toFixed(2)}</strong><br>z = suma + b = ${sum.toFixed(2)} + ${f.bias.toFixed(2)} = <strong>${z.toFixed(2)}</strong><br>ReLU(z) = max(0, z) = <strong>${a.toFixed(2)}</strong><br><br>Este valor se escribe en la celda seleccionada del mapa.`}
+
+/* La última declaración sustituye las versiones previas del boceto y muestra el Flatten real. */
+function drawArchitecture(maps1,maps2){
+  const svg=$("cnnDiagram");
+  const p1=overviewRows(filters.length,470,240).map(y=>[400,y]);
+  const m1=p1.map(([,y])=>[850,y+40]);
+  const p2=overviewRows(filters2.length,550,230).map(y=>[1210,y]);
+  const m2=p2.map(([,y])=>[1680,y+60]);
+  const input=[90,490],flatX=1960,flatCell=17,flatCols=1,flatY=630-(filters2.length*25*flatCell)/2;
+  const flatValues=maps2.flatMap(map=>map.flat());
+  const title=(x,a,b)=>`<text class="layer-title" x="${x}" y="43" text-anchor="middle">${a}<tspan x="${x}" dy="25">${b}</tspan></text>`;
+  let html=`<defs>
+    <marker id="arrowWide" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1769aa"/></marker>
+    <marker id="arrowFlat" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3.5" markerHeight="3.5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#087d78"/></marker>
+    <marker id="arrowDense" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1769aa"/></marker>
+  </defs>`+
+    title(166,"Capa de","entrada")+
+    title(565,"Conv. 1",`${filters.length} filtro${filters.length===1?"":"s"}`)+
+    title(909,"Mapas 1",`${filters.length} canal${filters.length===1?"":"es"}`)+
+    title(1385,"Conv. 2",`${filters2.length} filtro${filters2.length===1?"":"s"}`)+
+    title(1722,"Mapas 2",`${filters2.length} canal${filters2.length===1?"":"es"}`);
+
+  html+=svgMatrix(image,input[0],input[1],17,"imagen · 9 × 9 × 1","input");
+  filters.forEach((filter,index)=>{
+    html+=`<path class="link" marker-end="url(#arrowWide)" d="M243 566 L${p1[index][0]} ${p1[index][1]+100}"/>`;
+    html+=svgFilter(filter,p1[index][0],p1[index][1],index,1);
+    html+=`<path class="link" marker-end="url(#arrowWide)" d="M730 ${p1[index][1]+100} L${m1[index][0]-11} ${m1[index][1]+60}"/>`;
+    html+=svgMatrix(maps1[index],m1[index][0],m1[index][1],17,`mapa_${index+1}_1`,"map1",index);
+  });
+
+  /* Cada celda de los mapas 5×5 se reordena en una posición del vector Flatten. */
+  m2.forEach((source,mapIndex)=>{
+    for(let row=0;row<5;row++) for(let col=0;col<5;col++){
+      const flatIndex=mapIndex*25+row*5+col;
+      const targetCol=flatIndex%flatCols,targetRow=Math.floor(flatIndex/flatCols);
+      const sx=source[0]+col*17+8.5,sy=source[1]+row*17+8.5;
+      const tx=flatX+targetCol*flatCell+flatCell/2,ty=flatY+targetRow*flatCell+flatCell/2;
+      html+=`<path class="link secondary" marker-end="url(#arrowFlat)" d="M${sx} ${sy} L${tx} ${ty}" style="opacity:.24;stroke-width:1"/>`;
+    }
+  });
+
+  filters2.forEach((filter,index)=>{
+    m1.forEach(source=>{html+=`<path class="link secondary" marker-end="url(#arrowWide)" d="M${source[0]+119} ${source[1]+60} L${p2[index][0]-8} ${p2[index][1]+105}"/>`});
+    html+=svgFilter(filter,p2[index][0],p2[index][1],index,2);
+    html+=`<path class="link" marker-end="url(#arrowWide)" d="M1560 ${p2[index][1]+105} L${m2[index][0]-11} ${m2[index][1]+43}"/>`;
+    html+=svgMatrix(maps2[index],m2[index][0],m2[index][1],17,`mapa_${index+1}_2`,"map2",index);
+  });
+
+  const flatHeight=flatValues.length*flatCell;
+  const softmaxX=2300,softmaxCenter=flatY+flatHeight/2,softmaxStart=softmaxCenter-3*112;
+  html+=`<text class="layer-title" x="2025" y="${flatY-40}">Capa Flatten</text>`;
+  html+=`<text class="node-caption" x="2025" y="${flatY-15}">vector vertical · ${flatValues.length} × 1</text>`;
+  html+=`<rect class="matrix-frame" x="${flatX-5}" y="${flatY-5}" width="${flatCell+10}" height="${flatHeight+10}" rx="7"/>`;
+  flatValues.forEach((value,index)=>{
+    const col=index%flatCols,row=Math.floor(index/flatCols),x=flatX+col*flatCell,y=flatY+row*flatCell;
+    const mapIndex=Math.floor(index/25), mapMax=maxOf(maps2[mapIndex]);
+    html+=`<rect class="pixel" x="${x}" y="${y}" width="${flatCell}" height="${flatCell}" fill="${color(value,mapMax)}"><title>Flatten[${index}] = ${value.toFixed(3)} · procede de mapa_${mapIndex+1}_2</title></rect>`;
+  });
+  /* Capa densa: cada activación Flatten se conecta con las siete salidas. */
+  for(let flatIndex=0;flatIndex<flatValues.length;flatIndex++){
+    const sourceY=flatY+flatIndex*flatCell+flatCell/2;
+    for(let outputIndex=0;outputIndex<classNames.length;outputIndex++){
+      const targetY=softmaxStart+outputIndex*112;
+      html+=`<path d="M${flatX+flatCell} ${sourceY} L${softmaxX-51} ${targetY}" marker-end="url(#arrowDense)" fill="none" stroke="#1769aa" stroke-width=".75" opacity=".14"/>`;
+    }
+  }
+  html+=`<text class="layer-title" x="${softmaxX}" y="${softmaxStart-82}" text-anchor="middle">Capa Softmax</text><text class="node-caption" x="${softmaxX}" y="${softmaxStart-60}" text-anchor="middle">7 probabilidades actuales</text>`;
+  outputProbs.forEach((probability,index)=>{
+    const y=softmaxStart+index*112,lightness=96-probability*58,textColor=probability>.53?"#ffffff":"#102c42";
+    html+=`<circle cx="${softmaxX}" cy="${y}" r="50" fill="hsl(205,72%,${lightness}%)" stroke="#1769aa" stroke-width="2"><title>${classNames[index]}: ${(probability*100).toFixed(2)}%</title></circle>`;
+    html+=`<text x="${softmaxX}" y="${y-7}" text-anchor="middle" font-size="14" font-weight="700" fill="${textColor}">${classNames[index]}</text><text x="${softmaxX}" y="${y+16}" text-anchor="middle" font-size="15" font-weight="700" fill="${textColor}">${(probability*100).toFixed(1)}%</text>`;
+  });
+  html+=`<text class="node-caption" x="2050" y="${Math.min(1700,flatY+flatHeight+90)}" text-anchor="middle">Flatten no aprende pesos: solo reordena los ${filters2.length} mapas de 5 × 5 como un vector de ${flatValues.length} valores.</text>`;
+  svg.innerHTML=html;
+  svg.querySelectorAll("[data-image]").forEach(cell=>cell.addEventListener("click",()=>{const r=+cell.dataset.r,c=+cell.dataset.c;image[r][c]=image[r][c]?0:1;active.row=Math.min(6,Math.max(0,r-1));active.col=Math.min(6,Math.max(0,c-1));draw()}));
+  svg.querySelectorAll("[data-map-filter]").forEach(cell=>cell.addEventListener("click",()=>{active.filter=+cell.dataset.mapFilter;active.row=+cell.dataset.r;active.col=+cell.dataset.c;draw()}));
+  svg.querySelectorAll("[data-filter]").forEach(node=>node.addEventListener("click",()=>{active.filter=+node.dataset.filter;draw()}));
+}
+$("epochs").addEventListener("input",()=>{const count=+$("epochs").value;$("epochsValue").textContent=count;$("train").textContent="▶ Entrenar "+count+" época"+(count===1?"":"s")});$("shape").addEventListener("change",event=>{image=patterns[event.target.value].map(row=>[...row]);active={filter:0,row:2,col:2};draw();$("status").textContent="Imagen modificada. El entrenamiento usa un conjunto de patrones aparte; esta imagen sirve para explorar los filtros actuales."});$("clear").addEventListener("click",()=>{image=Array.from({length:9},()=>Array(9).fill(0));active={filter:0,row:2,col:2};draw()});$("train").addEventListener("click",trainAnimated);$("stop").addEventListener("click",()=>{if(training){stopRequested=true;$("stop").disabled=true;$("status").textContent="Detención solicitada: se terminará la época en curso."}});$("resetModel").addEventListener("click",()=>{if(!training)createModel()});["filters1","filters2","learningRate"].forEach(id=>$(id).addEventListener("change",()=>{if(!training)createModel()}));if(!window.tf){$("status").textContent="No se pudo cargar TensorFlow.js; revisa tu conexión a internet."}else{const dataset=makeTrainingData();trainX=dataset.features;trainY=dataset.targets;renderTrainingDataset();createModel()}
+</script>
+<script>
+  (() => {
+    const diagram = document.getElementById("cnnDiagram");
+    const slider = document.getElementById("architectureZoom");
+    const value = document.getElementById("architectureZoomValue");
+    const scroll = diagram.closest(".diagram-wrap");
+    const baseWidth = 2500;
+
+    function enableMousePan(container) {
+      let startX=0,startY=0,startLeft=0,startTop=0,dragging=false,suppressClick=false;
+      container.addEventListener("pointerdown", event => {
+        if (event.button !== 0) return;
+        startX=event.clientX;startY=event.clientY;startLeft=container.scrollLeft;startTop=container.scrollTop;dragging=true;suppressClick=false;
+        container.setPointerCapture(event.pointerId);
+      });
+      container.addEventListener("pointermove", event => {
+        if (!dragging) return;
+        const dx=event.clientX-startX,dy=event.clientY-startY;
+        if (Math.abs(dx)>3 || Math.abs(dy)>3) { suppressClick=true;container.classList.add("is-panning"); }
+        if (suppressClick) { container.scrollLeft=startLeft-dx;container.scrollTop=startTop-dy; }
+      });
+      const finishPan=event => { if (!dragging) return;dragging=false;container.classList.remove("is-panning");if (container.hasPointerCapture(event.pointerId)) container.releasePointerCapture(event.pointerId); };
+      container.addEventListener("pointerup",finishPan);
+      container.addEventListener("pointercancel",finishPan);
+      container.addEventListener("click",event => { if (suppressClick) { event.preventDefault();event.stopPropagation();suppressClick=false; } },true);
+    }
+
+    function applyZoom(nextValue, keepCenter = true) {
+      const previousCenter = keepCenter ? scroll.scrollLeft + scroll.clientWidth / 2 : 0;
+      const zoom = Math.max(70, Math.min(180, Number(nextValue)));
+      slider.value = zoom;
+      diagram.style.width = `${baseWidth * zoom / 100}px`;
+      diagram.style.minWidth = `${baseWidth * zoom / 100}px`;
+      value.textContent = `${zoom}%`;
+      if (keepCenter) requestAnimationFrame(() => { scroll.scrollLeft = Math.max(0, previousCenter - scroll.clientWidth / 2); });
+    }
+
+    slider.addEventListener("input", () => applyZoom(slider.value));
+    document.getElementById("architectureZoomOut").addEventListener("click", () => applyZoom(Number(slider.value) - 10));
+    document.getElementById("architectureZoomIn").addEventListener("click", () => applyZoom(Number(slider.value) + 10));
+    document.getElementById("architectureZoomReset").addEventListener("click", () => applyZoom(100, false));
+    applyZoom(100, false);
+    document.querySelectorAll(".diagram-wrap,.architecture-scroll").forEach(enableMousePan);
+  })();
+</script>
+</body>
+</html>
