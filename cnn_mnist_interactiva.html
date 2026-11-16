@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CNN con MNIST: aprendiendo a ver dígitos</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<style>
+:root{--ink:#102c42;--muted:#3d566c;--paper:#fffefa;--line:#c6d5ce;--blue:#1769aa;--teal:#087d78;--orange:#c95d16;--sky:#e7f1fb;--mint:#e7f4ee;--warm:#fff0d7}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:radial-gradient(circle at 8% 0,#dcefe8 0,transparent 32%),linear-gradient(135deg,#f6f2e9,#edf5f1);font:17px "Trebuchet MS",sans-serif}main{width:95vw;margin:auto;padding:28px 0 48px}h1,h2,h3{font-family:Georgia,serif}h1{margin:0;font-size:clamp(2.2rem,4vw,3.5rem);letter-spacing:-.035em}h2{margin:0 0 8px;font-size:1.45rem}.lead,.note{color:var(--muted);line-height:1.58}.lead{max-width:1130px;margin:10px 0 20px}.note{margin:0 0 10px}.card{background:var(--paper);border:1px solid var(--line);border-radius:17px;padding:17px;box-shadow:0 10px 26px #16384412}.intro{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}.samples{margin-bottom:16px}.sample-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:11px;background:#f8fbf9}.sample-grid{display:grid;grid-template-columns:repeat(20,180px);gap:10px;width:max-content;padding:12px}.sample{padding:8px;border:2px solid #b8cfc4;border-radius:10px;background:#fffefa;cursor:pointer}.sample:hover,.sample.active{border-color:var(--blue);background:var(--sky)}.sample strong{display:block;text-align:center;margin-bottom:6px}.sample canvas{display:block;width:168px;height:168px;margin:auto;image-rendering:pixelated}.controls{display:grid;grid-template-columns:repeat(4,minmax(190px,1fr));gap:12px;align-items:end;margin-bottom:16px}.control{padding:11px 13px;border-radius:12px;background:var(--sky)}.control label{display:block;font-weight:bold;margin-bottom:7px}.control select,.control input{width:100%;padding:8px;border:1px solid #b9ccc2;border-radius:7px;background:#fff;font:inherit;color:var(--ink)}button{padding:10px 13px;border:0;border-radius:9px;background:var(--blue);color:#fff;font:700 15px "Trebuchet MS",sans-serif;cursor:pointer}button.alt{background:#edf2ee;color:var(--ink);border:1px solid #c8d8d0}button.stop{background:#a9432b}button:disabled{opacity:.55;cursor:wait}.status{grid-column:span 2;color:var(--muted);font-weight:600}.diagram-wrap{overflow:auto;max-height:1050px;padding-bottom:6px;border:1px solid var(--line);border-radius:12px;background:#f9fcfa;cursor:grab;touch-action:none}.diagram-wrap.is-panning{cursor:grabbing;user-select:none}.diagram{display:block;min-width:2550px;min-height:1320px;width:2550px}.diagram text{fill:var(--ink);font-family:"Trebuchet MS",sans-serif}.layer{font:700 24px Georgia,serif}.node{font:700 16px Georgia,serif}.caption{font-size:14px;fill:var(--muted)!important}.frame{fill:#fdfefd;stroke:#173044;stroke-width:1.7}.pixel{stroke:#172e3f;stroke-width:.6}.box{fill:#fffefa;stroke:#9fbbb0;stroke-width:2}.conv{fill:#fff0d9;stroke:#dc6c22}.pool{fill:#e7f1fb;stroke:#1769aa}.flat{fill:#eeeafa;stroke:#8259a4}.link{stroke:#1769aa;stroke-width:2;fill:none;opacity:.78}.dense{stroke:#1769aa;stroke-width:.65;fill:none;opacity:.1}.legend{display:flex;gap:14px;flex-wrap:wrap;margin:9px 0 0;color:var(--muted)}.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.metric{padding:12px;border-radius:10px;background:var(--mint)}.metric span{display:block;color:var(--muted);font-size:.88rem}.metric strong{font:700 1.05rem Consolas,monospace}.how ol{margin:8px 0 0;padding-left:22px;line-height:1.55}@media(max-width:900px){.intro,.controls{grid-template-columns:1fr 1fr}.status{grid-column:span 2}}@media(max-width:600px){main{width:94vw}.intro,.controls{grid-template-columns:1fr}.status{grid-column:auto}}
+ .overview{margin-bottom:16px}.overview-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#f9fcfa;cursor:grab;touch-action:none}.overview-scroll.is-panning{cursor:grabbing;user-select:none}.overview-svg{display:block;min-width:2600px;width:100%;height:auto}.overview-svg text{fill:var(--ink);font-family:"Trebuchet MS",sans-serif}.overview-svg .layer{font:700 21px Georgia,serif}.overview-svg .node-name{font-weight:bold;font-size:14px}.overview-svg .node-note{font-size:12px;fill:var(--muted)}.overview-svg .node-box{stroke-width:2}.overview-svg .input{fill:#e8f1fb;stroke:#3775a1}.overview-svg .conv{fill:#fff0d9;stroke:#dc6c22}.overview-svg .pool{fill:#e7f1fb;stroke:#1769aa}.overview-svg .map{fill:#e8f5ef;stroke:#087d78}.overview-svg .flat{fill:#eeeafa;stroke:#8259a4}.overview-svg .arrow{stroke:#1769aa;stroke-width:2;fill:none}.overview-svg .combine{stroke:#087d78;stroke-width:1.3;opacity:.45;fill:none}.overview-zoom,.diagram-zoom{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 12px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--sky)}.overview-zoom button,.diagram-zoom button{min-width:38px;padding:5px 10px;font-size:18px;line-height:1}.overview-zoom input,.diagram-zoom input{width:min(260px,45vw);accent-color:var(--blue)}.overview-zoom output,.diagram-zoom output{min-width:50px;font-weight:700;text-align:right}
+#architectureDetail:fullscreen{width:100vw;height:100vh;overflow:auto;padding:22px;background:var(--paper);border-radius:0}#architectureDetail:fullscreen .diagram-wrap{max-height:calc(100vh - 260px)}
+.diagram{min-width:4740px;min-height:2300px;width:4740px}.combine-link{stroke:#1675b8;stroke-width:1.7;fill:none;opacity:.68}.flatten-link{stroke:#217ab4;stroke-width:1.15;fill:none;opacity:.58}.softmax-link{stroke:#3f88b8;stroke-width:.95;fill:none;opacity:.31}.metrics{margin:14px 0 16px}.architecture-toolbar{display:flex;gap:10px;align-items:center;margin:10px 0 12px;flex-wrap:wrap}.training-actions{display:flex;gap:7px;align-items:center;white-space:nowrap}.architecture-toolbar .diagram-zoom{flex:1;margin:0;min-width:min(100%,530px)}.diagram .layer{transform:none}
+</style>
+</head>
+<body>
+<main>
+  <h1>CNN con MNIST: de píxeles a dígitos</h1>
+  <p class="lead">Esta red aprende a reconocer dígitos escritos a mano. MNIST original contiene <strong>60&nbsp;000 imágenes de entrenamiento</strong> y <strong>10&nbsp;000 de prueba</strong>; esta demostración carga la distribución pública para navegador de TensorFlow.js: 55&nbsp;000 de entrenamiento y 10&nbsp;000 de prueba, y entrena con un subconjunto para que el proceso sea observable.</p>
+
+  <section class="intro">
+    <article class="card"><h2>¿Por qué usar MaxPool?</h2><p class="note">Una imagen de 28 × 28 generaría demasiados valores si se aplanara enseguida. Dos operaciones <strong>MaxPool 2 × 2</strong> reducen los mapas: 26 × 26 → 13 × 13 y 11 × 11 → 5 × 5. Así Flatten conserva entre 25 y 125 valores visibles.</p></article>
+    <article class="card"><h2>Arquitectura a entrenar</h2><p class="note"><strong>28 × 28 × 1 → Conv 1 → MaxPool → Conv 2 → MaxPool → Flatten → Softmax(10)</strong>. La salida contiene una probabilidad para cada dígito, de 0 a 9.</p></article>
+  </section>
+
+  <section class="card overview">
+    <h2>Arquitectura a evaluar</h2>
+    <p class="note">Este es el esquema completo de la CNN que se entrena en esta página. Es una guía estructural: el diagrama interactivo posterior muestra las activaciones, los mapas y las probabilidades que cambian durante el entrenamiento.</p>
+    <div class="overview-zoom" aria-label="Controles de zoom del esquema de arquitectura"><strong>Zoom del esquema</strong><button id="overviewZoomOut" class="alt" type="button" title="Reduce el tamaño del esquema.">−</button><input id="overviewZoom" type="range" min="70" max="180" step="10" value="100" aria-label="Nivel de zoom del esquema"><button id="overviewZoomIn" class="alt" type="button" title="Amplía el tamaño del esquema.">+</button><button id="overviewZoomReset" class="alt" type="button" title="Restablece el zoom al 100 por ciento.">100%</button><output id="overviewZoomValue" for="overviewZoom">100%</output></div>
+    <div id="overviewScroll" class="overview-scroll"><svg id="overviewSvg" class="overview-svg" viewBox="0 0 2600 880" role="img" aria-label="Esquema completo de la arquitectura CNN para MNIST"></svg></div>
+  </section>
+
+  <section class="card samples">
+    <h2>0. Ejemplos del conjunto MNIST</h2>
+    <p class="note">Se muestran 20 ejemplos reales —dos de cada dígito— en una cuadrícula de 28 × 28. Cada píxel ocupa 6 px, por lo que la imagen conserva un encuadre cercano a 168 × 168 px. Pulsa un ejemplo para llevarlo a la red.</p>
+    <div class="sample-scroll"><div id="sampleGrid" class="sample-grid"><p class="note">Cargando imágenes MNIST…</p></div></div>
+  </section>
+
+  <section class="controls">
+    <div class="control"><label for="filters1">Filtros Conv. 1</label><select id="filters1"><option value="1">1 filtro</option><option value="2">2 filtros</option><option value="3">3 filtros</option><option value="4" selected>4 filtros</option></select></div>
+    <div class="control"><label for="filters2">Filtros Conv. 2</label><select id="filters2"><option value="1">1 filtro</option><option value="2">2 filtros</option><option value="3">3 filtros</option><option value="4">4 filtros</option><option value="5" selected>5 filtros</option></select></div>
+    <div class="control"><label for="learningRate">Tasa Adam</label><select id="learningRate"><option value="0.0001">0.0001 · muy lenta</option><option value="0.0003">0.0003 · lenta</option><option value="0.001">0.001 · referencia</option><option value="0.003" selected>0.003 · gradual</option><option value="0.01">0.01 · rápida</option><option value="0.03">0.03 · agresiva</option></select></div>
+    <div class="control"><label for="trainSize">Imágenes por época</label><select id="trainSize"><option value="500">500 · exploración rápida</option><option value="1000" selected>1 000 · didáctico</option><option value="3000">3 000 · más estable</option><option value="5000">5 000 · más lento</option></select></div>
+    <div class="control"><label for="epochs">Épocas <output id="epochsValue">5</output></label><input id="epochs" type="range" min="1" max="200" value="5" title="Define cuántas épocas consecutivas se entrenarán. Puedes detener el proceso en cualquier momento."></div>
+    <div id="status" class="status">Cargando TensorFlow.js…</div>
+  </section>
+
+  <section id="architectureDetail" class="card">
+    <h2>1. Vista de arquitectura</h2>
+    <p class="note">Los píxeles de las imágenes y mapas se muestran sin números para no saturar el dibujo. Los colores indican activación: blanco es baja y azul oscuro es alta. Arrastra para recorrer el diagrama; los filtros de capa 2 reciben todos los mapas de la capa 1.</p>
+    <div class="metrics" aria-label="Métricas actuales del entrenamiento"><div class="metric"><span>Época</span><strong id="epochMetric">0</strong></div><div class="metric"><span>Pérdida</span><strong id="lossMetric">—</strong></div><div class="metric"><span>Exactitud train</span><strong id="accMetric">—</strong></div><div class="metric"><span>Exactitud prueba (1 000)</span><strong id="testMetric">—</strong></div></div>
+    <div class="architecture-toolbar"><div class="training-actions"><button id="train">▶ Entrenar 5 épocas</button><button id="stop" class="stop" disabled>■ Detener</button><button id="reset" class="alt">Nueva CNN</button></div><div class="diagram-zoom" aria-label="Controles de zoom de la vista detallada"><strong>Zoom del diagrama</strong><button id="diagramZoomOut" class="alt" type="button" title="Reduce el tamaño de la vista detallada.">−</button><input id="diagramZoom" type="range" min="70" max="180" step="10" value="100" aria-label="Nivel de zoom de la vista detallada"><button id="diagramZoomIn" class="alt" type="button" title="Amplía el tamaño de la vista detallada.">+</button><button id="diagramZoomReset" class="alt" type="button" title="Restablece el zoom al 100 por ciento.">100%</button><button id="diagramFullscreen" class="alt" type="button" title="Abre esta vista de arquitectura en pantalla completa.">⛶ Pantalla completa</button><output id="diagramZoomValue" for="diagramZoom">100%</output></div></div>
+    <div id="diagramWrap" class="diagram-wrap"><svg id="diagram" class="diagram" viewBox="-220 -160 4740 2300" role="img" aria-label="Arquitectura CNN de MNIST"></svg></div>
+    <div class="legend"><span><i class="swatch" style="background:#f7fbfa;border:1px solid #ccd8d3"></i>activación baja</span><span><i class="swatch" style="background:#1c719f"></i>activación alta</span><span><i class="swatch" style="background:#fff0d9;border:1px solid #dc6c22"></i>filtro convolucional</span><span>Las líneas tenues muestran conexiones entre canales y desde Flatten a Softmax.</span></div>
+  </section>
+
+  <section class="card how"><h2>2. Ideas clave</h2><ol><li>Los filtros de la primera convolución capturan trazos locales: bordes, curvas o pequeñas transiciones.</li><li>MaxPool no aprende pesos: conserva la activación mayor de cada ventana 2 × 2 y reduce el tamaño espacial.</li><li>Flatten reorganiza los mapas finales 5 × 5 en un vector de <code>25 × número de filtros de Conv. 2</code> valores.</li><li>Softmax transforma la salida final en diez probabilidades que suman aproximadamente 100 %.</li></ol></section>
+</main>
+<script>
+const $=id=>document.getElementById(id),IMAGE_SIZE=784,NUM_TRAIN=55000,NUM_TEST=10000,NUM_DATASET=65000;
+let data=null,model=null,filters1=[],filters2=[],image=Array(28*28).fill(0),label=null,probs=Array(10).fill(.1),training=false,stopRequested=false,epoch=0;
+const palette=(v,max=1)=>{const t=Math.max(0,Math.min(1,v/max));return `hsl(202,${20+t*55}%,${98-t*52}%)`};
+async function loadMnist(){try{$("status").textContent="Descargando la distribución web de MNIST (55 000 train + 10 000 prueba)…";const labelsRequest=fetch("https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8"),sprite=new Image();sprite.crossOrigin="anonymous";const imageRequest=new Promise((resolve,reject)=>{sprite.onload=resolve;sprite.onerror=()=>reject(new Error("No se pudo descargar el sprite de imágenes"));sprite.src="https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png"});const [labelResponse]=await Promise.all([labelsRequest,imageRequest]);if(!labelResponse.ok)throw new Error("No se pudieron descargar las etiquetas");const labels=new Uint8Array(await labelResponse.arrayBuffer()),canvas=document.createElement("canvas"),ctx=canvas.getContext("2d",{willReadFrequently:true}),images=new Float32Array(NUM_DATASET*IMAGE_SIZE),chunk=5000;canvas.width=sprite.width;canvas.height=chunk;for(let start=0;start<NUM_DATASET;start+=chunk){const height=Math.min(chunk,NUM_DATASET-start);ctx.drawImage(sprite,0,start,sprite.width,height,0,0,sprite.width,height);const pixels=ctx.getImageData(0,0,sprite.width,height).data;for(let i=0;i<height*IMAGE_SIZE;i++)images[(start*IMAGE_SIZE)+i]=pixels[i*4]/255}data={images,labels};const first=firstExamples();image=Array.from(first[0].pixels);label=first[0].label;renderSamples(first);createModel();$("status").textContent="MNIST cargado. Selecciona ejemplos, arquitectura y tasa; después entrena."}catch(error){console.error(error);$("status").textContent="No fue posible cargar MNIST: "+error.message}}
+function digitAt(index){for(let digit=0;digit<10;digit++)if(data.labels[index*10+digit]===1)return digit;return 0}
+function firstExamples(){const result=[],counts=Array(10).fill(0);for(let i=0;i<NUM_TRAIN&&result.length<20;i++){const y=digitAt(i);if(counts[y]<2){result.push({pixels:data.images.slice(i*IMAGE_SIZE,(i+1)*IMAGE_SIZE),label:y,index:i});counts[y]++}}return result}
+function drawCanvas(canvas,pixels){const ctx=canvas.getContext("2d"),size=6;canvas.width=168;canvas.height=168;for(let r=0;r<28;r++)for(let c=0;c<28;c++){const v=pixels[r*28+c];ctx.fillStyle=`rgb(${Math.round(255*(1-v))},${Math.round(255*(1-v))},${Math.round(255*(1-v))})`;ctx.fillRect(c*size,r*size,size,size)}}
+function renderSamples(samples){const grid=$("sampleGrid");grid.innerHTML="";samples.forEach((sample,index)=>{const card=document.createElement("article"),title=document.createElement("strong"),canvas=document.createElement("canvas");card.className="sample"+(sample.index===0?" active":"");title.textContent=`Dígito ${sample.label} · ejemplo ${index+1}`;card.append(title,canvas);drawCanvas(canvas,sample.pixels);card.addEventListener("click",()=>{image=Array.from(sample.pixels);label=sample.label;grid.querySelectorAll(".sample").forEach(node=>node.classList.remove("active"));card.classList.add("active");draw()});grid.append(card)})}
+function cfg(){return{n1:+$("filters1").value,n2:+$("filters2").value,lr:+$("learningRate").value}}
+function initialiseVisuals(n1,n2){filters1=Array.from({length:n1},(_,i)=>({name:`filtro_${i+1}_1`,weights:Array(9).fill(0)}));filters2=Array.from({length:n2},(_,i)=>({name:`filtro_${i+1}_2`,weights:Array(n1*9).fill(0)}))}
+function overviewRows(count,center,gap){return Array.from({length:count},(_,i)=>center-(count-1)*gap/2+i*gap)}
+function renderOverview(n1,n2){const svg=$("overviewSvg"),c1=overviewRows(n1,390,150),c2=overviewRows(n2,390,125),box=(type,x,y,name,note,w=145,h=76)=>`<g><rect class="node-box ${type}" x="${x}" y="${y}" width="${w}" height="${h}" rx="11"/><text class="node-name" x="${x+w/2}" y="${y+31}" text-anchor="middle">${name}</text><text class="node-note" x="${x+w/2}" y="${y+54}" text-anchor="middle">${note}</text></g>`;let s=`<defs><marker id="oa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#1769aa"/></marker></defs><text class="layer" x="120" y="46" text-anchor="middle">Entrada</text><text class="layer" x="372" y="46" text-anchor="middle">Conv. 1</text><text class="layer" x="602" y="46" text-anchor="middle">Mapas 1</text><text class="layer" x="830" y="46" text-anchor="middle">MaxPool 1</text><text class="layer" x="1175" y="46" text-anchor="middle">Conv. 2</text><text class="layer" x="1415" y="46" text-anchor="middle">MaxPool 2</text><text class="layer" x="1770" y="46" text-anchor="middle">Flatten</text><text class="layer" x="2080" y="46" text-anchor="middle">Softmax</text>`;s+=box("input",45,350,"imagen","28 × 28 × 1",150,86);c1.forEach((y,i)=>{s+=`<path class="arrow" marker-end="url(#oa)" d="M195 393 L300 ${y+38}"/>`+box("conv",300,y,`filtro_${i+1}_1`,`3 × 3 × 1 · ReLU`)+`<path class="arrow" marker-end="url(#oa)" d="M445 ${y+38} L535 ${y+38}"/>`+box("map",535,y,`mapa_${i+1}_1`,`26 × 26`)+`<path class="arrow" marker-end="url(#oa)" d="M680 ${y+38} L760 ${y+38}"/>`+box("pool",760,y,`pool_${i+1}_1`,`13 × 13`)});c2.forEach((y,i)=>{c1.forEach(source=>s+=`<path class="combine" d="M905 ${source+38} L1060 ${y+38}"/>`);s+=box("conv",1060,y,`filtro_${i+1}_2`,`3 × 3 × ${n1} · ReLU`,160)+`<path class="arrow" marker-end="url(#oa)" d="M1220 ${y+38} L1340 ${y+38}"/>`+box("map",1340,y,`mapa_${i+1}_2`,`11 × 11`)+`<path class="arrow" marker-end="url(#oa)" d="M1485 ${y+38} L1560 ${y+38}"/>`+box("pool",1560,y,`pool_${i+1}_2`,`5 × 5`)+`<path class="arrow" marker-end="url(#oa)" d="M1705 ${y+38} L1795 393"/>`});s+=box("flat",1795,350,"Flatten",`${25*n2} valores`,150,86)+`<path class="arrow" marker-end="url(#oa)" d="M1945 393 L2010 393"/>`+box("flat",2010,350,"Softmax","10 clases",150,86)+`<text class="node-note" x="1000" y="780" text-anchor="middle">Cada filtro de Conv. 2 recibe los ${n1} mapas producidos por Conv. 1. MaxPool reduce el tamaño espacial sin aprender pesos.</text>`;svg.innerHTML=s}
+function createModel(){if(!window.tf||!data)return;const {n1,n2,lr}=cfg();if(model)model.dispose();initialiseVisuals(n1,n2);renderOverview(n1,n2);model=tf.sequential();model.add(tf.layers.conv2d({name:"conv1",inputShape:[28,28,1],filters:n1,kernelSize:3,activation:"relu",kernelInitializer:tf.initializers.randomNormal({stddev:.12})}));model.add(tf.layers.maxPooling2d({poolSize:2,strides:2}));model.add(tf.layers.conv2d({name:"conv2",filters:n2,kernelSize:3,activation:"relu",kernelInitializer:tf.initializers.randomNormal({stddev:.12})}));model.add(tf.layers.maxPooling2d({poolSize:2,strides:2}));model.add(tf.layers.flatten());model.add(tf.layers.dense({units:10,activation:"softmax"}));model.compile({optimizer:tf.train.adam(lr),loss:"categoricalCrossentropy",metrics:["accuracy"]});epoch=0;syncWeights();draw();$("epochMetric").textContent="0";$("lossMetric").textContent="—";$("accMetric").textContent="—";$("testMetric").textContent="—"}
+function syncWeights(){const n1=filters1.length,n2=filters2.length,[k1]=model.getLayer("conv1").getWeights(),a1=Array.from(k1.dataSync()),[k2]=model.getLayer("conv2").getWeights(),a2=Array.from(k2.dataSync());filters1.forEach((f,o)=>f.weights=Array.from({length:9},(_,i)=>a1[i*n1+o]));filters2.forEach((f,o)=>f.weights=Array.from({length:n1*9},(_,i)=>a2[i*n2+o]))}
+function tensorFor(pixels){return tf.tensor4d(Array.from(pixels),[1,28,28,1])}
+function mapsForImage(){const input=tensorFor(image),layers=[model.getLayer("conv1"),model.layers[1],model.getLayer("conv2"),model.layers[3]],out=[];let current=input;layers.forEach(layer=>{const next=layer.apply(current);if(current!==input)current.dispose();current=next;out.push(Array.from(next.dataSync()));});current.dispose();input.dispose();return out}
+function matrix(values,h,w,channel,count){const out=[];for(let r=0;r<h;r++){const row=[];for(let c=0;c<w;c++)row.push(values[(r*w+c)*count+channel]);out.push(row)}return out}
+function max(matrix){return Math.max(...matrix.flat(),.001)}
+function svgGrid(matrix,x,y,cell,label){const h=matrix.length,w=matrix[0].length,m=max(matrix);let s=`<text class="node" x="${x+w*cell/2}" y="${y-14}" text-anchor="middle">${label}</text><rect class="frame" x="${x-4}" y="${y-4}" width="${w*cell+8}" height="${h*cell+8}" rx="5"/>`;matrix.forEach((row,r)=>row.forEach((v,c)=>s+=`<rect class="pixel" x="${x+c*cell}" y="${y+r*cell}" width="${cell}" height="${cell}" fill="${palette(v,m)}"><title>${label}[${r},${c}] = ${v.toFixed(3)}</title></rect>`));return s}
+function rows(count,center,gap){return Array.from({length:count},(_,i)=>center-(count-1)*gap/2+i*gap)}
+function draw(){if(!model)return;const {n1,n2}=cfg(),[conv1,pool1,conv2,pool2]=mapsForImage(),inputMatrix=Array.from({length:28},(_,r)=>image.slice(r*28,r*28+28).map(v=>v/255)),pool1Maps=Array.from({length:n1},(_,i)=>matrix(pool1,13,13,i,n1)),pool2Maps=Array.from({length:n2},(_,i)=>matrix(pool2,5,5,i,n2)),c1=rows(n1,460,220),c2=rows(n2,480,180),flatValues=pool2Maps.flatMap(m=>m.flat()),flatCell=16,flatH=flatValues.length*flatCell,flatY=630-flatH/2,softX=2360,softStart=630-4.5*105;const pred=tensorFor(image),result=model.predict(pred);probs=Array.from(result.dataSync());pred.dispose();result.dispose();let s=`<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#1769aa"/></marker><marker id="thin" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#1769aa"/></marker></defs><text class="layer" x="170" y="50" text-anchor="middle">Entrada</text><text class="layer" x="550" y="50" text-anchor="middle">Conv. 1 + Pool</text><text class="layer" x="1040" y="50" text-anchor="middle">Conv. 2 + Pool</text><text class="layer" x="1740" y="50" text-anchor="middle">Flatten</text><text class="layer" x="2360" y="50" text-anchor="middle">Softmax</text>`;s+=svgGrid(inputMatrix,85,350,6,"imagen · 28 × 28 × 1");filters1.forEach((f,i)=>{const y=c1[i];s+=`<path class="link" marker-end="url(#arr)" d="M253 434 L390 ${y}"/><rect class="box conv" x="390" y="${y-65}" width="180" height="130" rx="13"/><text class="node" x="480" y="${y-20}" text-anchor="middle">${f.name}</text><text class="caption" x="480" y="${y+5}" text-anchor="middle">3 × 3 × 1 · ReLU</text><text class="caption" x="480" y="${y+30}" text-anchor="middle">→ mapa 26 × 26</text><path class="link" marker-end="url(#arr)" d="M570 ${y} L650 ${y}"/>`+svgGrid(pool1Maps[i],650,y-78,12,`pool_${i+1}_1 · 13 × 13`)});filters2.forEach((f,i)=>{const y=c2[i];pool1Maps.forEach((_,j)=>s+=`<path class="link" d="M810 ${c1[j]-1} L960 ${y}" style="opacity:.28"/>`);s+=`<rect class="box conv" x="960" y="${y-78}" width="220" height="156" rx="13"/><text class="node" x="1070" y="${y-30}" text-anchor="middle">${f.name}</text><text class="caption" x="1070" y="${y-4}" text-anchor="middle">3 × 3 × ${n1} · ReLU</text><text class="caption" x="1070" y="${y+22}" text-anchor="middle">11 × 11 → MaxPool</text><path class="link" marker-end="url(#arr)" d="M1180 ${y} L1260 ${y}"/>`+svgGrid(pool2Maps[i],1260,y-50,20,`pool_${i+1}_2 · 5 × 5`);for(let r=0;r<5;r++)for(let c=0;c<5;c++){const index=i*25+r*5+c;s+=`<path class="dense" marker-end="url(#thin)" d="M${1360+c*20} ${y-50+r*20+10} L1740 ${flatY+index*flatCell+8}"/>`}});s+=`<text class="node" x="1780" y="${flatY-30}" text-anchor="middle">${flatValues.length} × 1</text><rect class="frame" x="1736" y="${flatY-4}" width="24" height="${flatH+8}" rx="5"/>`;flatValues.forEach((v,i)=>{const source=Math.floor(i/25),m=max(pool2Maps[source]);s+=`<rect class="pixel" x="1740" y="${flatY+i*flatCell}" width="16" height="16" fill="${palette(v,m)}"/>`;for(let digit=0;digit<10;digit++)s+=`<path class="dense" marker-end="url(#thin)" d="M1756 ${flatY+i*flatCell+8} L${softX-48} ${softStart+digit*105}"/>`});for(let digit=0;digit<10;digit++){const y=softStart+digit*105,p=probs[digit],light=96-p*58,tc=p>.53?"#fff":"#102c42";s+=`<circle cx="${softX}" cy="${y}" r="46" fill="hsl(205,72%,${light}%)" stroke="#1769aa" stroke-width="2"><title>Dígito ${digit}: ${(p*100).toFixed(2)}%</title></circle><text x="${softX}" y="${y-5}" text-anchor="middle" font-size="18" font-weight="700" fill="${tc}">${digit}</text><text x="${softX}" y="${y+17}" text-anchor="middle" font-size="14" font-weight="700" fill="${tc}">${(p*100).toFixed(1)}%</text>`}s+=`<text class="caption" x="1890" y="1245" text-anchor="middle">Flatten reordena ${n2} mapas 5 × 5 en ${flatValues.length} valores. La capa densa conecta cada valor con cada uno de los 10 dígitos.</text>`;$("diagram").innerHTML=s}
+function batch(split,count){const start=split==="train"?0:NUM_TRAIN,n=Math.min(count,split==="train"?NUM_TRAIN:NUM_TEST),x=tf.tensor4d(data.images.slice(start*IMAGE_SIZE,(start+n)*IMAGE_SIZE),[n,28,28,1]),y=tf.tensor2d(data.labels.slice(start*10,(start+n)*10),[n,10]);return{x,y}}
+async function evaluateTest(){const test=batch("test",1000),result=model.evaluate(test.x,test.y),values=(Array.isArray(result)?result:[result]).map(t=>t.dataSync()[0]);(Array.isArray(result)?result:[result]).forEach(t=>t.dispose());test.x.dispose();test.y.dispose();$("testMetric").textContent=(values[1]*100).toFixed(1)+"%"}
+async function train(){if(training||!data)return;training=true;stopRequested=false;["train","reset","filters1","filters2","learningRate","trainSize","epochs"].forEach(id=>$(id).disabled=true);$("stop").disabled=false;const rounds=+$("epochs").value,size=+$("trainSize").value;try{for(let i=0;i<rounds&&!stopRequested;i++){const set=batch("train",size),history=await model.fit(set.x,set.y,{epochs:1,batchSize:64,shuffle:true});set.x.dispose();set.y.dispose();epoch++;syncWeights();draw();const loss=history.history.loss[0],acc=(history.history.acc||history.history.accuracy)[0];$("epochMetric").textContent=epoch;$("lossMetric").textContent=loss.toFixed(4);$("accMetric").textContent=(acc*100).toFixed(1)+"%";$("status").textContent=`Época ${epoch}: entrenando con ${size.toLocaleString("es-CO")} imágenes MNIST. Observa los cambios en mapas y Softmax.`;await evaluateTest();if(!stopRequested)await new Promise(r=>setTimeout(r,250))}$('status').textContent=stopRequested?`Entrenamiento detenido en época ${epoch}.`:`Entrenamiento terminado tras ${epoch} épocas.`}catch(error){console.error(error);$("status").textContent="Error de entrenamiento: "+error.message}finally{training=false;["train","reset","filters1","filters2","learningRate","trainSize","epochs"].forEach(id=>$(id).disabled=false);$("stop").disabled=true}}
+function enablePan(el){let x,y,l,t,drag=false,moved=false;el.addEventListener("pointerdown",e=>{if(e.button!==0)return;x=e.clientX;y=e.clientY;l=el.scrollLeft;t=el.scrollTop;drag=true;moved=false;el.setPointerCapture(e.pointerId)});el.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-x,dy=e.clientY-y;if(Math.abs(dx)>3||Math.abs(dy)>3){moved=true;el.classList.add("is-panning");el.scrollLeft=l-dx;el.scrollTop=t-dy}});["pointerup","pointercancel"].forEach(type=>el.addEventListener(type,e=>{drag=false;el.classList.remove("is-panning");if(el.hasPointerCapture(e.pointerId))el.releasePointerCapture(e.pointerId)}));el.addEventListener("click",e=>{if(moved){e.preventDefault();e.stopPropagation();moved=false}},true)}
+$("epochs").addEventListener("input",()=>{$("epochsValue").textContent=$("epochs").value;$("train").textContent=`▶ Entrenar ${$("epochs").value} épocas`});["filters1","filters2","learningRate"].forEach(id=>$(id).addEventListener("change",createModel));$("train").addEventListener("click",train);$("stop").addEventListener("click",()=>{stopRequested=true;$("stop").disabled=true});$("reset").addEventListener("click",createModel);enablePan($("diagramWrap"));enablePan($("overviewScroll"));
+(()=>{const svg=$("overviewSvg"),scroll=$("overviewScroll"),slider=$("overviewZoom"),value=$("overviewZoomValue"),base=2600;function applyZoom(next,keepCenter=true){const center=keepCenter?scroll.scrollLeft+scroll.clientWidth/2:0,zoom=Math.max(70,Math.min(180,+next));slider.value=zoom;svg.style.width=`${base*zoom/100}px`;svg.style.minWidth=`${base*zoom/100}px`;value.textContent=`${zoom}%`;if(keepCenter)requestAnimationFrame(()=>scroll.scrollLeft=Math.max(0,center-scroll.clientWidth/2))}slider.addEventListener("input",()=>applyZoom(slider.value));$("overviewZoomOut").addEventListener("click",()=>applyZoom(+slider.value-10));$("overviewZoomIn").addEventListener("click",()=>applyZoom(+slider.value+10));$("overviewZoomReset").addEventListener("click",()=>applyZoom(100,false));applyZoom(100,false)})();
+(()=>{const svg=$("diagram"),scroll=$("diagramWrap"),slider=$("diagramZoom"),value=$("diagramZoomValue"),base=2550;function applyZoom(next,keepCenter=true){const center=keepCenter?scroll.scrollLeft+scroll.clientWidth/2:0,zoom=Math.max(70,Math.min(180,+next));slider.value=zoom;svg.style.width=`${base*zoom/100}px`;svg.style.minWidth=`${base*zoom/100}px`;value.textContent=`${zoom}%`;if(keepCenter)requestAnimationFrame(()=>scroll.scrollLeft=Math.max(0,center-scroll.clientWidth/2))}slider.addEventListener("input",()=>applyZoom(slider.value));$("diagramZoomOut").addEventListener("click",()=>applyZoom(+slider.value-10));$("diagramZoomIn").addEventListener("click",()=>applyZoom(+slider.value+10));$("diagramZoomReset").addEventListener("click",()=>applyZoom(100,false));applyZoom(100,false)})();
+(()=>{const section=$("architectureDetail"),button=$("diagramFullscreen");button.addEventListener("click",async()=>{try{if(document.fullscreenElement===section)await document.exitFullscreen();else await section.requestFullscreen()}catch(error){$("status").textContent="No se pudo activar la pantalla completa: "+error.message}});document.addEventListener("fullscreenchange",()=>{button.textContent=document.fullscreenElement===section?"⛶ Salir de pantalla completa":"⛶ Pantalla completa"})})();
+loadMnist();
+</script>
+<script>
+  /* El modelo conserva las dimensiones matemáticas; esta capa ajusta solo la escala visual de Flatten. */
+  const drawMnistArchitectureBase = draw;
+  draw = function () {
+    drawMnistArchitectureBase();
+    const svg = document.getElementById("diagram");
+    const cells = [...svg.querySelectorAll('rect.pixel[x="1740"]')];
+    if (!cells.length) return;
+    const oldCell = 16, newCell = 12, oldTop = 630 - cells.length * oldCell / 2, newTop = 630 - cells.length * newCell / 2;
+    cells.forEach((cell, index) => {
+      cell.setAttribute("y", newTop + index * newCell);
+      cell.setAttribute("width", newCell);
+      cell.setAttribute("height", newCell);
+    });
+    const frame = [...svg.querySelectorAll("rect.frame")].find(node => node.getAttribute("x") === "1736");
+    if (frame) { frame.setAttribute("y", newTop - 4); frame.setAttribute("width", 20); frame.setAttribute("height", cells.length * newCell + 8); }
+    [...svg.querySelectorAll("path.dense")].forEach(path => {
+      const d = path.getAttribute("d");
+      let match = d.match(/ L1740 (-?[\d.]+)$/);
+      if (match) { const index = Math.round((+match[1] - oldTop - 8) / oldCell); path.setAttribute("d", d.replace(/ L1740 -?[\d.]+$/, ` L1740 ${newTop + index * newCell + 6}`)); return; }
+      match = d.match(/^M1756 (-?[\d.]+) L/);
+      if (match) { const index = Math.round((+match[1] - oldTop - 8) / oldCell); path.setAttribute("d", d.replace(/^M1756 -?[\d.]+ L/, `M1752 ${newTop + index * newCell + 6} L`)); }
+    });
+    [...svg.querySelectorAll("text.node")].filter(node => /× 1$/.test(node.textContent)).forEach(node => node.setAttribute("y", newTop - 30));
+  };
+</script>
+<script>
+  /* Vista detallada: cada convolución y cada MaxPool se muestran como etapas separadas. */
+  (() => {
+    const svg = $("diagram"), slider = $("diagramZoom"), scroll = $("diagramWrap"), zoomValue = $("diagramZoomValue"), wideBase = 4740;
+    svg.setAttribute("viewBox", "-220 -160 4740 2300");
+    function applyWideZoom(next, keepCenter = true) {
+      const center = keepCenter ? scroll.scrollLeft + scroll.clientWidth / 2 : 0;
+      const zoom = Math.max(70, Math.min(180, +next));
+      slider.value = zoom;
+      svg.style.width = `${wideBase * zoom / 100}px`;
+      svg.style.minWidth = `${wideBase * zoom / 100}px`;
+      zoomValue.textContent = `${zoom}%`;
+      if (keepCenter) requestAnimationFrame(() => { scroll.scrollLeft = Math.max(0, center - scroll.clientWidth / 2); });
+    }
+    slider.addEventListener("input", () => applyWideZoom(slider.value));
+    $("diagramZoomOut").addEventListener("click", () => applyWideZoom(+slider.value - 10));
+    $("diagramZoomIn").addEventListener("click", () => applyWideZoom(+slider.value + 10));
+    $("diagramZoomReset").addEventListener("click", () => applyWideZoom(100, false));
+    applyWideZoom(slider.value, false);
+
+    const matrixSvg = (weights, x, y, cell, count, tone = "#ffffff") => {
+      let out = "";
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+        const v = weights[r * 3 + c] ?? 0;
+        const opacity = Math.min(.9, .12 + Math.min(1, Math.abs(v)) * .72);
+        const fill = v >= 0 ? `rgba(23,105,170,${opacity})` : `rgba(201,93,22,${opacity})`;
+        const label = v.toFixed(2).replace(/^(-?)0\./, "$1."), fontSize = cell >= 28 ? 13 : cell >= 20 ? 10 : cell >= 17 ? 9 : 8;
+        out += `<rect x="${x + c * cell}" y="${y + r * cell}" width="${cell}" height="${cell}" fill="${fill}" stroke="#173044" stroke-width=".7"/><text x="${x + c * cell + cell / 2}" y="${y + r * cell + cell * .67}" text-anchor="middle" class="caption" style="font-size:${fontSize}px;fill:#102c42!important">${label}</text>`;
+      }
+      return out;
+    };
+    const filterBox = (filter, x, y, label, depth, accent) => {
+      const width = depth > 1 ? 540 : 184, height = depth > 1 ? 265 : 156;
+      let out = `<rect class="box conv" x="${x}" y="${y}" width="${width}" height="${height}" rx="14"/><text class="node" x="${x + width / 2}" y="${y + 28}" text-anchor="middle">${label}</text><text class="caption" x="${x + width / 2}" y="${y + 48}" text-anchor="middle">3 × 3${depth > 1 ? ` × ${depth}` : ""} · ReLU</text>`;
+      if (depth === 1) {
+        out += matrixSvg(filter.weights, x + 49, y + 61, 28, 1);
+      } else {
+        const shown = Math.min(depth, 4), baseX = x + 34;
+        for (let channel = 0; channel < shown; channel++) {
+          const cx = baseX + channel * 124, weights = filter.weights.slice(channel * 9, channel * 9 + 9);
+          out += `<text class="caption" x="${cx + 45}" y="${y + 78}" text-anchor="middle" style="font-size:16px">canal ${channel + 1}</text>`;
+          out += matrixSvg(weights, cx, y + 88, 30, 1);
+        }
+        if (depth > 4) out += `<text class="caption" x="${x + width - 20}" y="${y + 112}" text-anchor="middle">…</text>`;
+      }
+      return out;
+    };
+    const poolBox = (x, y, label) => `<rect class="box pool" x="${x}" y="${y}" width="128" height="118" rx="13"/><text class="node" x="${x + 64}" y="${y + 27}" text-anchor="middle">${label}</text><text class="caption" x="${x + 64}" y="${y + 46}" text-anchor="middle">máximo 2 × 2</text><rect x="${x + 40}" y="${y + 59}" width="20" height="20" class="pixel" fill="#d8ebf7"/><rect x="${x + 60}" y="${y + 59}" width="20" height="20" class="pixel" fill="#4c9ace"/><rect x="${x + 40}" y="${y + 79}" width="20" height="20" class="pixel" fill="#87bcdb"/><rect x="${x + 60}" y="${y + 79}" width="20" height="20" class="pixel" fill="#e8f4fa"/>`;
+
+    draw = function () {
+      if (!model) return;
+      const { n1, n2 } = cfg();
+      const [conv1, pool1, conv2, pool2] = mapsForImage();
+      const inputMatrix = Array.from({ length: 28 }, (_, row) => image.slice(row * 28, row * 28 + 28));
+      const conv1Maps = Array.from({ length: n1 }, (_, i) => matrix(conv1, 26, 26, i, n1));
+      const pool1Maps = Array.from({ length: n1 }, (_, i) => matrix(pool1, 13, 13, i, n1));
+      const conv2Maps = Array.from({ length: n2 }, (_, i) => matrix(conv2, 11, 11, i, n2));
+      const pool2Maps = Array.from({ length: n2 }, (_, i) => matrix(pool2, 5, 5, i, n2));
+      const y1 = rows(n1, 510, 205), y2 = rows(n2, 700, 280);
+      const flatValues = pool2Maps.flatMap(map => map.flat());
+      const architectureCenterY = 870, flatCell = 12, flatTop = architectureCenterY - flatValues.length * flatCell / 2;
+      const predictionInput = tensorFor(image), output = model.predict(predictionInput);
+      probs = Array.from(output.dataSync()); predictionInput.dispose(); output.dispose();
+      let html = `<defs><marker id="arrowWide" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9Z" fill="#1769aa"/></marker><marker id="flatArrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5Z" fill="#217ab4"/></marker></defs>`;
+      html += `<text class="layer" x="175" y="52" text-anchor="middle">Entrada</text><text class="layer" x="505" y="52" text-anchor="middle">Convolucional 1</text><text class="layer" x="800" y="52" text-anchor="middle">Mapas tras Conv. 1</text><text class="layer" x="970" y="52" text-anchor="middle">MaxPool 1</text><text class="layer" x="1205" y="52" text-anchor="middle">Mapas tras Pool 1</text><text class="layer" x="1690" y="52" text-anchor="middle">Convolucional 2</text><text class="layer" x="2087" y="52" text-anchor="middle">Mapas tras Conv. 2</text><text class="layer" x="2325" y="52" text-anchor="middle">MaxPool 2</text><text class="layer" x="2535" y="52" text-anchor="middle">Mapas tras Pool 2</text><text class="layer" x="2800" y="52" text-anchor="middle">Flatten</text><text class="layer" x="3840" y="52" text-anchor="middle">Softmax</text>`;
+      html += svgGrid(inputMatrix, 90, 500, 6, "imagen · 28 × 28 × 1");
+      y1.forEach((y, i) => {
+        html += `<path class="link" marker-end="url(#arrowWide)" d="M258 584 L330 ${y + 78}"/>`;
+        html += filterBox(filters1[i], 330, y, `filtro_1_${i + 1}`, 1);
+        html += `<path class="link" marker-end="url(#arrowWide)" d="M514 ${y + 78} L620 ${y + 78}"/>`;
+        html += svgGrid(conv1Maps[i], 620, y, 6, `mapa_1_${i + 1} · 26 × 26`);
+        html += `<path class="link" marker-end="url(#arrowWide)" d="M776 ${y + 78} L900 ${y + 59}"/>`;
+        html += poolBox(900, y + 19, "MaxPool 1");
+        html += `<path class="link" marker-end="url(#arrowWide)" d="M1028 ${y + 78} L1100 ${y + 78}"/>`;
+        html += svgGrid(pool1Maps[i], 1100, y, 12, `pool_1_${i + 1} · 13 × 13`);
+      });
+      /* Primero las conexiones; los nodos se dibujan después y quedan visualmente por encima. */
+      y2.forEach(y => y1.forEach(sourceY => { html += `<path class="combine-link" marker-end="url(#arrowWide)" d="M1256 ${sourceY + 78} L1420 ${y + 132}"/>`; }));
+      flatValues.forEach((value, i) => {
+        const source = Math.floor(i / 25), local = i % 25, row = Math.floor(local / 5), column = local % 5;
+        const sourceX = 2460 + (column + 1) * 20, sourceY = y2[source] + 37 + row * 20 + 10;
+        html += `<path class="flatten-link" marker-end="url(#flatArrow)" d="M${sourceX} ${sourceY} L2770 ${flatTop + i * flatCell + 6}"/>`;
+      });
+      y2.forEach((y, i) => {
+        html += filterBox(filters2[i], 1420, y, `filtro_2_${i + 1}`, n1);
+        html += `<path class="link" marker-end="url(#arrowWide)" d="M1960 ${y + 132} L2010 ${y + 132}"/>`;
+        html += svgGrid(conv2Maps[i], 2010, y + 55, 14, `mapa_2_${i + 1} · 11 × 11`);
+        html += `<path class="link" marker-end="url(#arrowWide)" d="M2164 ${y + 132} L2260 ${y + 79}"/>`;
+        html += poolBox(2260, y + 39, "MaxPool 2");
+        html += `<path class="link" marker-end="url(#arrowWide)" d="M2388 ${y + 98} L2460 ${y + 98}"/>`;
+        html += svgGrid(pool2Maps[i], 2460, y + 37, 20, `pool_2_${i + 1} · 5 × 5`);
+      });
+      html += `<text class="node" x="2780" y="${flatTop - 34}">vector de ${flatValues.length} activaciones</text><text class="caption" x="2780" y="${flatTop - 15}">orden: mapas reducidos de la capa 2</text><rect class="frame" x="2766" y="${flatTop - 4}" width="28" height="${flatValues.length * flatCell + 8}" rx="3"/>`;
+      flatValues.forEach((value, i) => {
+        const source = Math.floor(i / 25), sourceMax = max(pool2Maps[source]) || 1;
+        html += `<rect class="pixel" x="2770" y="${flatTop + i * flatCell}" width="20" height="${flatCell}" fill="${palette(value, sourceMax)}"/>`;
+      });
+      const softX = 3800, softStart = architectureCenterY - 4.5 * 110;
+      for (let digit = 0; digit < 10; digit++) {
+        const cy = softStart + digit * 110, p = probs[digit], shade = `rgba(23,105,170,${.10 + .85 * p})`;
+        flatValues.forEach((_, i) => { html += `<path class="softmax-link" d="M2794 ${flatTop + i * flatCell + 6} L${softX - 55} ${cy}"/>`; });
+        html += `<circle cx="${softX}" cy="${cy}" r="46" fill="${shade}" stroke="#1769aa" stroke-width="2"/><text class="node" x="${softX}" y="${cy - 5}" text-anchor="middle">${digit}</text><text class="caption" x="${softX}" y="${cy + 17}" text-anchor="middle" style="fill:#102c42!important">${(p * 100).toFixed(1)}%</text>`;
+      }
+      html += `<text class="caption" x="90" y="1740">Cada bloque se conserva separado: Convolución aprende filtros; MaxPool reduce cada mapa sin aprender nuevos pesos.</text>`;
+      svg.innerHTML = html;
+    };
+    if (model) draw();
+  })();
+</script>
+</body>
+</html>
