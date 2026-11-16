@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Laboratorio de convoluciones de imágenes</title>
+  <style>
+    :root{--ink:#102c42;--muted:#46627a;--paper:#fffefa;--line:#c6d7cf;--blue:#1769aa;--teal:#087d78;--orange:#d9681d;--sky:#e7f1fb;--mint:#e7f4ee;--warm:#fff0d9}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:radial-gradient(circle at 7% 0,#dcefe8 0,transparent 33%),linear-gradient(135deg,#f7f3ea,#edf5f1);font:17px "Trebuchet MS",sans-serif}main{width:95vw;margin:auto;padding:28px 0 58px}h1,h2,h3{font-family:Georgia,serif}h1{margin:0;font-size:clamp(2.2rem,4vw,3.5rem);letter-spacing:-.035em}h2{margin:0 0 8px;font-size:1.5rem}.lead,.note{color:var(--muted);line-height:1.55}.lead{max-width:1120px;margin:10px 0 20px}.note{margin:0 0 10px}.card{padding:17px;border:1px solid var(--line);border-radius:17px;background:var(--paper);box-shadow:0 10px 26px #16384412}.intro{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:16px}.intro strong{color:var(--teal)}.toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:16px}.control{min-width:195px;padding:10px 12px;border-radius:11px;background:var(--sky)}.control label{display:block;margin-bottom:6px;font-weight:bold}.control select,.control input{width:100%;font:inherit;color:var(--ink)}.control select{padding:7px;border:1px solid #b8ccc2;border-radius:7px;background:#fff}.file-label,button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 13px;border:0;border-radius:9px;background:var(--blue);color:#fff;font:700 15px "Trebuchet MS",sans-serif;cursor:pointer}.file-label input{display:none}button.alt{border:1px solid #c7d8d0;background:#edf2ee;color:var(--ink)}button.stop{background:#b64e35}button:disabled{opacity:.55;cursor:wait}.status{flex:1;min-width:260px;padding:11px 13px;border-left:4px solid var(--teal);border-radius:0 8px 8px 0;background:var(--mint);color:var(--muted)}.flow-card{margin-top:8px}.diagram-tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:8px 0 12px;padding:8px 10px;border-radius:10px;background:var(--sky)}.diagram-tools input{width:min(270px,42vw);accent-color:var(--blue)}.diagram-tools output{min-width:48px;font-weight:bold}.diagram-wrap{overflow:auto;max-height:1040px;border:1px solid var(--line);border-radius:12px;background:#f9fcfa;cursor:grab;touch-action:none}.diagram-wrap.is-panning{cursor:grabbing;user-select:none}.diagram-sizer{position:relative;width:1900px;height:3450px}.diagram{position:relative;width:1900px;height:3450px;transform-origin:top left}.diagram svg{position:absolute;inset:0;width:1900px;height:3450px;pointer-events:none}.layer-title{position:absolute;top:18px;font:700 28px Georgia,serif;text-align:center}.input-title{left:45px;width:450px}.filter-title{left:630px;width:470px}.map-title{left:1260px;width:430px}.input-node,.filter-node,.map-node{position:absolute;border:2px solid #1a5371;border-radius:14px;background:#fffefa;padding:12px;text-align:center;box-shadow:0 5px 12px #15384412}.input-node{left:70px;top:120px;width:430px;cursor:move;touch-action:none}.filter-node{left:600px;width:470px;min-height:330px;border-color:#dc6c22;background:#fff1dc;cursor:pointer}.filter-node.active{outline:5px solid #8dc6ea;outline-offset:3px}.map-node{left:1260px;width:430px;min-height:440px;border-color:#087d78;background:#f8fffb}.map-node.active{outline:5px solid #82c8c1;outline-offset:3px}.node-name{margin:0 0 4px;font:700 21px Georgia,serif}.node-note{margin:0 0 8px;color:var(--muted);font-size:16px}.image-canvas{display:block;width:384px;height:384px;margin:auto;image-rendering:pixelated;border:1px solid #18354b}.kernel{display:grid;grid-template-columns:repeat(3,58px);justify-content:center;margin:12px 0;gap:4px}.kernel span{height:58px;padding-top:16px;border:1px solid #8fa6b3;border-radius:3px;background:#fff;font:20px Consolas,monospace}.filter-node.active .kernel span{border-color:var(--orange)}.legend{display:flex;gap:15px;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:.94rem}.dot{display:inline-block;width:12px;height:12px;margin-right:4px;border-radius:3px;vertical-align:-1px}.inspect{display:grid;grid-template-columns:300px 1fr;gap:15px;margin-top:16px}.patch-grid{display:grid;grid-template-columns:repeat(3,62px);width:max-content;gap:3px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#f6faf8}.patch-cell{height:62px;padding-top:20px;text-align:center;border:1px solid #28495e;background:#fff;font:15px Consolas,monospace}.formula{padding:14px;border-radius:10px;background:var(--sky);line-height:1.55}.formula code{display:block;padding:10px;border-radius:7px;background:#173b4a;color:#e8f5ef;font:14px Consolas,monospace;overflow:auto}.formula strong{color:var(--teal)}.how{margin-top:16px}.how ol{margin:7px 0 0;padding-left:22px;line-height:1.55}@media(max-width:800px){.intro,.inspect{grid-template-columns:1fr}.toolbar{align-items:stretch}.control{flex:1}.status{flex-basis:100%}}
+    .diagram-sizer,.diagram,.diagram svg{width:3500px}.diagram-sizer,.diagram{height:3450px}.map-title{left:1260px;width:430px}.pool-title{left:1760px;width:180px}.pooled-title{left:2010px;width:250px}.conv2-title{left:2420px;width:520px}.second-map-title{left:3120px;width:280px}.pool-node{position:absolute;left:1760px;width:180px;height:150px;padding:12px;border:2px solid #1769aa;border-radius:14px;background:#e7f1fb;text-align:center;box-shadow:0 5px 12px #15384412}.pool-node h3{margin:0 0 8px;font:700 18px Georgia,serif}.pool-grid{display:grid;grid-template-columns:repeat(2,28px);justify-content:center;gap:2px}.pool-grid span{height:28px;border:1px solid #507d9b}.pool-grid span:nth-child(1){background:#d3e7f4}.pool-grid span:nth-child(2){background:#4e9ccf}.pool-grid span:nth-child(3){background:#8dbfdb}.pool-grid span:nth-child(4){background:#e9f5fa}.pooled-node{position:absolute;left:2010px;width:250px;min-height:260px;padding:12px;border:2px solid #087d78;border-radius:14px;background:#f8fffb;text-align:center;box-shadow:0 5px 12px #15384412}.pooled-canvas{display:block;width:188px;height:188px;margin:auto;image-rendering:pixelated;border:1px solid #18354b}.pooled-node.active{outline:5px solid #82c8c1;outline-offset:3px}.conv2-node{position:absolute;left:2380px;width:560px;min-height:330px;padding:12px;border:2px solid #8053aa;border-radius:14px;background:#f3eafb;text-align:center;box-shadow:0 5px 12px #15384412;cursor:pointer}.conv2-node.active{outline:5px solid #b99add;outline-offset:3px}.depth-kernels{display:flex;justify-content:center;gap:16px;margin:10px 0}.depth-kernel-label{font-size:14px;color:var(--muted)}.depth-kernel{display:grid;grid-template-columns:repeat(3,34px);gap:2px}.depth-kernel span{height:34px;padding-top:8px;border:1px solid #9b86ae;border-radius:3px;background:#fff;font:13px Consolas,monospace}.second-map-node{position:absolute;left:3120px;width:260px;min-height:260px;padding:12px;border:2px solid #8053aa;border-radius:14px;background:#fbf8ff;text-align:center;box-shadow:0 5px 12px #15384412}.second-map-node.active{outline:5px solid #b99add;outline-offset:3px}.second-canvas{display:block;width:180px;height:180px;margin:auto;image-rendering:pixelated;border:1px solid #18354b}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Laboratorio: una imagen bajo distintos filtros</h1>
+  <p class="lead">Carga una imagen y observa cómo varios <strong>kernels de convolución</strong> transforman sus píxeles en mapas de respuesta. No hay entrenamiento: los filtros comienzan con pesos aleatorios y se mantienen fijos para poder inspeccionar su efecto.</p>
+
+  <section class="intro">
+    <article class="card"><h2>¿Qué está ocurriendo?</h2><p class="note">Cada filtro <strong>3 × 3</strong> recorre la imagen procesada. En cada posición multiplica sus nueve pesos por los nueve píxeles de una ventana local, suma los resultados y escribe un valor en el mapa de salida.</p></article>
+    <article class="card"><h2>Una imagen con tamaño didáctico</h2><p class="note">La imagen se convierte a escala de grises y se reduce a <strong>96 × 96</strong>. Así conserva mejor su forma y aún permite visualizar la convolución. Con kernel 3 × 3 y stride 1, cada mapa mide <strong>94 × 94</strong>.</p></article>
+  </section>
+
+  <section class="toolbar" aria-label="Controles del laboratorio">
+    <label class="file-label">▣ Cargar imagen<input id="imageFile" type="file" accept="image/*"></label>
+    <button id="example" class="alt">Usar figura de ejemplo</button><button id="randomize" class="alt">Recrear filtros</button>
+    <div class="control"><label for="filterSelect">Filtro a inspeccionar</label><select id="filterSelect"></select></div>
+    <div class="control"><label for="speed">Velocidad de animación</label><select id="speed"><option value="1" selected>1 ms · máxima</option><option value="5">5 ms · muy rápida</option><option value="10">10 ms · rápida</option><option value="15">15 ms · ágil</option><option value="40">40 ms · observable</option></select></div>
+    <div class="control"><label for="stepsPerFrame">Avance por cuadro</label><select id="stepsPerFrame"><option value="1" selected>1 posición · detallado</option><option value="5">5 posiciones</option><option value="20">20 posiciones</option><option value="50">50 posiciones · muy rápido</option></select></div>
+    <button id="animate">▶ Animar filtro</button><button id="animateAll">▶ Animar todos</button><button id="pause" class="stop" disabled>❚❚ Pausar</button><button id="next" class="alt">Siguiente posición</button><button id="applyAll" class="alt">Aplicar todos</button>
+    <div class="control"><label for="secondFilterSelect">Inspeccionar capa 2</label><select id="secondFilterSelect"><option value="0">Filtro 2.1</option><option value="1">Filtro 2.2</option></select></div>
+    <button id="animateSecond">▶ Animar capa 2</button><button id="nextSecond" class="alt">Siguiente capa 2</button>
+    <div id="status" class="status">Figura de ejemplo lista. Escoge un filtro o carga una imagen.</div>
+  </section>
+
+  <section class="card flow-card">
+    <h2>1. Arquitectura de convoluciones</h2>
+  <p class="note">Todas las ramas reciben la misma imagen. Después de cada mapa, MaxPool 2 × 2 conserva el valor máximo de cada bloque y lo reduce de 94 × 94 a 47 × 47. Los tres mapas reducidos entran a cada filtro <strong>3 × 3 × 3</strong> de la segunda convolución. Haz clic en un filtro o en sus mapas para seleccionarlo; puedes arrastrar la imagen de entrada.</p>
+    <div class="diagram-tools"><strong>Zoom del lienzo</strong><button id="zoomOut" class="alt" type="button">−</button><input id="diagramZoom" type="range" min="55" max="150" step="5" value="100"><button id="zoomIn" class="alt" type="button">+</button><button id="zoomReset" class="alt" type="button">100%</button><output id="zoomValue">100%</output></div>
+    <div id="diagramWrap" class="diagram-wrap"><div id="diagramSizer" class="diagram-sizer"><div id="diagram" class="diagram"></div></div></div>
+    <div class="legend"><span><i class="dot" style="background:#fff1dc;border:1px solid #dc6c22"></i>kernel con pesos aleatorios</span><span><i class="dot" style="background:#f8fffb;border:1px solid #087d78"></i>mapa de respuesta</span><span><i class="dot" style="background:#1675b8"></i>rama seleccionada</span><span><strong>Pseudocolor:</strong> azul = activación positiva, blanco = cerca de 0, naranja = activación negativa. No representa colores RGB.</span></div>
+  </section>
+
+  <section class="inspect">
+    <article class="card"><h2>Ventana local 3 × 3</h2><div id="patch" class="patch-grid"></div></article>
+    <article class="card"><h2>2. Cálculo de la posición actual</h2><div id="calculation" class="formula">Selecciona un filtro y pulsa <strong>Siguiente posición</strong> o <strong>Animar filtro</strong>.</div></article>
+  </section>
+  <section class="card how"><h2>3. Cálculo de la segunda convolución</h2><div id="secondCalculation" class="formula">Completa primero la capa 1 y MaxPool. Después podrás animar los dos filtros de la capa 2 en paralelo.</div></section>
+
+  <section class="card how"><h2>Cómo interpretar las salidas</h2><ol><li>Al iniciar, cada <strong>Filtro 1 … Filtro 3</strong> tiene pesos aleatorios: todavía no puede llamarse “filtro de bordes” ni “filtro de desenfoque”.</li><li>Las regiones azul y naranja muestran respuestas positivas y negativas de la convolución; no son probabilidades.</li><li>Al pulsar <strong>Recrear filtros</strong>, se obtiene una nueva inicialización aleatoria y, por tanto, mapas diferentes.</li><li>En una CNN real, backpropagation ajustaría estos nueve pesos de cada kernel para que detecten patrones útiles para la tarea.</li></ol></section>
+</main>
+<script>
+(() => {
+  const SIZE = 96, OUT = SIZE - 2, POOLED = OUT / 2, SECOND_OUT = POOLED - 2, CELL = 4;
+  const filters = [
+    {name:"Filtro 1", kind:"edge", weights:randomWeights(), description:"Pesos aleatorios: aún no representan un patrón aprendido."},
+    {name:"Filtro 2", kind:"edge", weights:randomWeights(), description:"Pesos aleatorios: aún no representan un patrón aprendido."},
+    {name:"Filtro 3", kind:"edge", weights:randomWeights(), description:"Pesos aleatorios: aún no representan un patrón aprendido."}
+  ];
+  const secondFilters = [
+    {name:"Filtro 2.1", weights:randomWeights(27), bias:randomWeight()},
+    {name:"Filtro 2.2", weights:randomWeights(27), bias:randomWeight()}
+  ];
+  const $ = id => document.getElementById(id);
+  let input = new Float32Array(SIZE * SIZE), outputs = [], pooledOutputs = [], secondOutputs = [], selected = 0, selectedSecond = 0, position = 0, secondPosition = 0, running = false, secondRunning = false, timer = null, secondTimer = null, animateEvery = false, knownByFilter = [], knownBySecond = [], inputCanvas, mapCanvases = [], pooledCanvases = [], secondCanvases = [], inputPosition = {left:70, top:120};
+  const clamp = n => Math.max(0, Math.min(1, n));
+  const fmt = n => `${n < 0 ? "−" : ""}${Math.abs(n).toFixed(2)}`;
+  function randomWeights(count=9){return Array.from({length:count},()=>Math.round((Math.random()*2-1)*100)/100)}
+  function randomWeight(){return Math.round((Math.random()*2-1)*100)/100}
+  function makeExample(reveal=false){
+    input.fill(.95);
+    for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
+      const diagonal = Math.abs(x-y) < 3 || Math.abs((SIZE-1-x)-y) < 3;
+      const circle = Math.abs(Math.hypot(x-68,y-30)-16) < 3;
+      input[y*SIZE+x] = diagonal || circle ? .1 : .95;
+    }
+    recompute(reveal);
+  }
+  function convolve(filter){
+    const values = new Float32Array(OUT*OUT);
+    for(let y=0;y<OUT;y++)for(let x=0;x<OUT;x++){
+      let sum = 0;
+      for(let ky=0;ky<3;ky++)for(let kx=0;kx<3;kx++)sum += input[(y+ky)*SIZE+x+kx] * filter.weights[ky*3+kx];
+      values[y*OUT+x] = sum;
+    }
+    return values;
+  }
+  function maxPool(values){const pooled=new Float32Array(POOLED*POOLED);for(let y=0;y<POOLED;y++)for(let x=0;x<POOLED;x++){const top=(y*2)*OUT+x*2;pooled[y*POOLED+x]=Math.max(values[top],values[top+1],values[top+OUT],values[top+OUT+1])}return pooled}
+  function convolveSecond(filter){const values=new Float32Array(SECOND_OUT*SECOND_OUT);for(let y=0;y<SECOND_OUT;y++)for(let x=0;x<SECOND_OUT;x++){let sum=filter.bias;for(let channel=0;channel<3;channel++)for(let ky=0;ky<3;ky++)for(let kx=0;kx<3;kx++)sum+=pooledOutputs[channel][(y+ky)*POOLED+x+kx]*filter.weights[channel*9+ky*3+kx];values[y*SECOND_OUT+x]=sum}return values}
+  function recompute(reveal=true){outputs = filters.map(convolve);pooledOutputs=outputs.map(maxPool);secondOutputs=secondFilters.map(convolveSecond);position=0;secondPosition=0;knownByFilter=filters.map(()=>reveal?OUT*OUT:0);knownBySecond=secondFilters.map(()=>0);renderDiagram();renderDetail();renderSecondDetail();}
+  function gray(v){const c=Math.round(255*clamp(v));return `rgb(${c},${c},${c})`}
+  function drawInput(canvas, active=-1){
+    if(!canvas)return; const ctx=canvas.getContext("2d");canvas.width=SIZE*CELL;canvas.height=SIZE*CELL;
+    for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){ctx.fillStyle=gray(input[y*SIZE+x]);ctx.fillRect(x*CELL,y*CELL,CELL,CELL)}
+    ctx.strokeStyle="rgba(20,55,82,.28)";ctx.lineWidth=.35;for(let i=0;i<=SIZE;i++){ctx.beginPath();ctx.moveTo(i*CELL,0);ctx.lineTo(i*CELL,SIZE*CELL);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*CELL);ctx.lineTo(SIZE*CELL,i*CELL);ctx.stroke()}
+    if(active>=0){const x=active%OUT,y=Math.floor(active/OUT);ctx.fillStyle="rgba(245,159,45,.34)";ctx.fillRect(x*CELL,y*CELL,3*CELL,3*CELL);ctx.strokeStyle="#d9681d";ctx.lineWidth=2;ctx.strokeRect(x*CELL,y*CELL,3*CELL,3*CELL)}
+  }
+  function mapColor(value, filter, maxAbs){
+    if(filter.kind === "image"){const t=clamp(value);return `hsl(203,${22+t*45}%,${97-t*53}%)`}
+    const t=Math.min(1,Math.abs(value)/(maxAbs||1)); return value>=0 ? `hsl(203,${28+t*55}%,${97-t*51}%)` : `hsl(24,${35+t*60}%,${97-t*48}%)`;
+  }
+  function drawMap(canvas,index,limit=OUT*OUT){
+    if(!canvas)return; const ctx=canvas.getContext("2d"), values=outputs[index], filter=filters[index], maxAbs=Math.max(...values.map(Math.abs),.01);canvas.width=OUT*CELL;canvas.height=OUT*CELL;
+    for(let y=0;y<OUT;y++)for(let x=0;x<OUT;x++){const i=y*OUT+x;ctx.fillStyle=i<limit?mapColor(values[i],filter,maxAbs):"#f7faf8";ctx.fillRect(x*CELL,y*CELL,CELL,CELL)}
+    ctx.strokeStyle="rgba(20,55,82,.20)";ctx.lineWidth=.35;for(let i=0;i<=OUT;i++){ctx.beginPath();ctx.moveTo(i*CELL,0);ctx.lineTo(i*CELL,OUT*CELL);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*CELL);ctx.lineTo(OUT*CELL,i*CELL);ctx.stroke()}
+    if(index===selected && limit>0 && limit<OUT*OUT){const x=(limit-1)%OUT,y=Math.floor((limit-1)/OUT);ctx.strokeStyle="#d9681d";ctx.lineWidth=2;ctx.strokeRect(x*CELL,y*CELL,CELL,CELL)}
+  }
+  function drawPooledMap(canvas,index,limit=OUT*OUT){
+    if(!canvas)return;const ctx=canvas.getContext("2d"),values=pooledOutputs[index],filter=filters[index],maxAbs=Math.max(...values.map(Math.abs),.01),poolCell=4;canvas.width=POOLED*poolCell;canvas.height=POOLED*poolCell;
+    for(let y=0;y<POOLED;y++)for(let x=0;x<POOLED;x++){const sourceEnd=(y*2+1)*OUT+x*2+1,i=y*POOLED+x;ctx.fillStyle=sourceEnd<limit?mapColor(values[i],filter,maxAbs):"#f7faf8";ctx.fillRect(x*poolCell,y*poolCell,poolCell,poolCell)}
+    ctx.strokeStyle="rgba(20,55,82,.18)";ctx.lineWidth=.35;for(let i=0;i<=POOLED;i++){ctx.beginPath();ctx.moveTo(i*poolCell,0);ctx.lineTo(i*poolCell,POOLED*poolCell);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*poolCell);ctx.lineTo(POOLED*poolCell,i*poolCell);ctx.stroke()}
+    if(secondRunning||knownBySecond.some(value=>value>0)){const p=Math.max(0,Math.min(secondPosition-1,SECOND_OUT*SECOND_OUT-1)),x=p%SECOND_OUT,y=Math.floor(p/SECOND_OUT);ctx.strokeStyle="#8053aa";ctx.lineWidth=2;ctx.strokeRect(x*poolCell,y*poolCell,3*poolCell,3*poolCell)}
+  }
+  function drawSecondMap(canvas,index,limit=0){
+    if(!canvas)return;const ctx=canvas.getContext("2d"),values=secondOutputs[index],filter={kind:"edge"},maxAbs=Math.max(...values.map(Math.abs),.01),cell=4;canvas.width=SECOND_OUT*cell;canvas.height=SECOND_OUT*cell;
+    for(let y=0;y<SECOND_OUT;y++)for(let x=0;x<SECOND_OUT;x++){const i=y*SECOND_OUT+x;ctx.fillStyle=i<limit?mapColor(values[i],filter,maxAbs):"#f7faf8";ctx.fillRect(x*cell,y*cell,cell,cell)}
+    ctx.strokeStyle="rgba(20,55,82,.18)";ctx.lineWidth=.35;for(let i=0;i<=SECOND_OUT;i++){ctx.beginPath();ctx.moveTo(i*cell,0);ctx.lineTo(i*cell,SECOND_OUT*cell);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*cell);ctx.lineTo(SECOND_OUT*cell,i*cell);ctx.stroke()}
+  }
+  function kernelHtml(filter){return `<div class="kernel">${filter.weights.map(v=>`<span>${fmt(v)}</span>`).join("")}</div>`}
+  function depthKernelHtml(filter){return `<div class="depth-kernels">${[0,1,2].map(channel=>`<div><div class="depth-kernel-label">canal ${channel+1}</div><div class="depth-kernel">${filter.weights.slice(channel*9,channel*9+9).map(v=>`<span>${fmt(v)}</span>`).join("")}</div></div>`).join("")}</div>`}
+  function drawConnections(){
+    const centers=filters.map((_,i)=>120+i*550), secondCenters=[430,1250], sourceX=inputPosition.left+430, sourceY=inputPosition.top+225, svg=$("connections");
+    svg.innerHTML=`<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" fill="#1769aa"/><path id="purpleArrow" d="M0 0 L10 5 L0 10Z" fill="#8053aa"/></marker></defs>${centers.map(y=>`<path d="M${sourceX} ${sourceY} L600 ${y+170}" stroke="#1769aa" stroke-width="2.5" fill="none" marker-end="url(#arrow)" opacity=".8"/>`).join("")}${centers.map(y=>`<path d="M1070 ${y+170} L1260 ${y+170}" stroke="#1769aa" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>`).join("")}${centers.map(y=>`<path d="M1690 ${y+220} L1760 ${y+220}" stroke="#1769aa" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>`).join("")}${centers.map(y=>`<path d="M1940 ${y+220} L2010 ${y+220}" stroke="#1769aa" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>`).join("")}${secondCenters.map(s=>centers.map(y=>`<path d="M2260 ${y+210} L2380 ${s+165}" stroke="#8053aa" stroke-width="1.8" fill="none" opacity=".55" marker-end="url(#arrow)"/>`).join("")).join("")}${secondCenters.map(s=>`<path d="M2940 ${s+165} L3120 ${s+165}" stroke="#8053aa" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>`).join("")}`;
+  }
+  function refreshVisuals(onlyActive=false){
+    drawInput(inputCanvas, running||(position>0&&knownByFilter.some(value=>value<OUT*OUT))?Math.max(0,Math.min(position-1,OUT*OUT-1)):-1);
+    mapCanvases.forEach((canvas,i)=>{if(!onlyActive||i===selected||animateEvery)drawMap(canvas,i,knownByFilter[i])});
+    pooledCanvases.forEach((canvas,i)=>{if(!onlyActive||i===selected||animateEvery)drawPooledMap(canvas,i,knownByFilter[i])});
+    secondCanvases.forEach((canvas,i)=>drawSecondMap(canvas,i,knownBySecond[i]));
+  }
+  function bindInputDrag(node){
+    let startX,startY,left,top,drag=false;
+    node.addEventListener("pointerdown",event=>{event.stopPropagation();startX=event.clientX;startY=event.clientY;left=inputPosition.left;top=inputPosition.top;drag=true;node.setPointerCapture(event.pointerId)});
+    node.addEventListener("pointermove",event=>{if(!drag)return;const scale=+$('diagramZoom').value/100;inputPosition.left=Math.max(20,Math.min(760,left+(event.clientX-startX)/scale));inputPosition.top=Math.max(85,Math.min(2940,top+(event.clientY-startY)/scale));node.style.left=`${inputPosition.left}px`;node.style.top=`${inputPosition.top}px`;drawConnections()});
+    ["pointerup","pointercancel"].forEach(type=>node.addEventListener(type,event=>{drag=false;if(node.hasPointerCapture(event.pointerId))node.releasePointerCapture(event.pointerId)}));
+  }
+  function renderDiagram(){
+    const diagram=$("diagram"), centers=filters.map((_,i)=>120+i*550), secondCenters=[430,1250];
+    diagram.innerHTML=`<svg id="connections" viewBox="0 0 3500 3450" aria-hidden="true"></svg><div class="layer-title input-title">Imagen de entrada</div><div class="layer-title filter-title">Filtros aleatorios 3 × 3</div><div class="layer-title map-title">Mapas de características</div><div class="layer-title pool-title">MaxPool 2 × 2</div><div class="layer-title pooled-title">Mapas reducidos</div><div class="layer-title conv2-title">Convolucional 2</div><div class="layer-title second-map-title">Mapas capa 2</div><article id="inputNode" class="input-node" style="left:${inputPosition.left}px;top:${inputPosition.top}px"><h3 class="node-name">imagen · 96 × 96 × 1</h3><p class="node-note">escala de grises · arrastrable</p><canvas id="inputCanvas" class="image-canvas"></canvas></article>${filters.map((filter,i)=>`<article class="filter-node ${i===selected?"active":""}" data-filter="${i}" style="top:${centers[i]}px"><h3 class="node-name">${filter.name}</h3><p class="node-note">pesos aleatorios · 3 × 3</p>${kernelHtml(filter)}<p class="node-note">${filter.description}</p></article><article class="map-node ${i===selected?"active":""}" data-filter="${i}" style="top:${centers[i]}px"><h3 class="node-name">mapa_${i+1} · 94 × 94</h3><p class="node-note">respuesta del filtro</p><canvas class="image-canvas map-canvas" data-map="${i}"></canvas></article><article class="pool-node" style="top:${centers[i]+145}px"><h3>MaxPool</h3><p class="node-note">máximo 2 × 2</p><div class="pool-grid"><span></span><span></span><span></span><span></span></div></article><article class="pooled-node ${i===selected?"active":""}" data-filter="${i}" style="top:${centers[i]+80}px"><h3 class="node-name">pool_${i+1} · 47 × 47</h3><p class="node-note">mapa reducido</p><canvas class="pooled-canvas" data-pool="${i}"></canvas></article>`).join("")}${secondFilters.map((filter,i)=>`<article class="conv2-node ${i===selectedSecond?"active":""}" data-second-filter="${i}" style="top:${secondCenters[i]}px"><h3 class="node-name">${filter.name} · 3 × 3 × 3</h3><p class="node-note">una matriz 3 × 3 por cada mapa reducido · sesgo ${fmt(filter.bias)}</p>${depthKernelHtml(filter)}<p class="node-note">Combina los tres canales para producir un mapa 45 × 45.</p></article><article class="second-map-node ${i===selectedSecond?"active":""}" data-second-filter="${i}" style="top:${secondCenters[i]+40}px"><h3 class="node-name">mapa_2_${i+1} · 45 × 45</h3><p class="node-note">salida de ${filter.name}</p><canvas class="second-canvas" data-second-map="${i}"></canvas></article>`).join("")}`;
+    inputCanvas=$("inputCanvas");mapCanvases=[...diagram.querySelectorAll(".map-canvas")];pooledCanvases=[...diagram.querySelectorAll("[data-pool]")];secondCanvases=[...diagram.querySelectorAll("[data-second-map]")];diagram.querySelectorAll("[data-filter]").forEach(node=>node.addEventListener("click",()=>selectFilter(+node.dataset.filter)));diagram.querySelectorAll("[data-second-filter]").forEach(node=>node.addEventListener("click",()=>selectSecondFilter(+node.dataset.secondFilter)));bindInputDrag($("inputNode"));drawConnections();refreshVisuals();
+  }
+  function selectFilter(index){pause();selected=index;$("filterSelect").value=index;document.querySelectorAll("[data-filter]").forEach(node=>node.classList.toggle("active",+node.dataset.filter===selected));refreshVisuals();renderDetail();}
+  function selectSecondFilter(index){pause();selectedSecond=index;$("secondFilterSelect").value=index;document.querySelectorAll("[data-second-filter]").forEach(node=>node.classList.toggle("active",+node.dataset.secondFilter===selectedSecond));refreshVisuals();renderSecondDetail();}
+  function renderDetail(){
+    const filter=filters[selected], shownPosition=Math.max(0,Math.min(position-1,OUT*OUT-1)), x=shownPosition%OUT,y=Math.floor(shownPosition/OUT), patch=$("patch");
+    patch.innerHTML=Array.from({length:9},(_,i)=>{const px=x+i%3,py=y+Math.floor(i/3);return `<div class="patch-cell">${input[py*SIZE+px].toFixed(2)}</div>`}).join("");
+    const products=filter.weights.map((w,i)=>input[(y+Math.floor(i/3))*SIZE+x+i%3]*w), result=products.reduce((a,b)=>a+b,0);
+    $("calculation").innerHTML=`<p><strong>${filter.name}</strong> en salida <code>(${y}, ${x})</code>. La ventana naranja de la imagen corresponde a esta celda del mapa.</p><code>${products.map(fmt).join(" + ")} = ${fmt(result)}</code><p>Se multiplica cada píxel de la ventana por el peso situado en la misma posición del kernel. Después se suman los nueve productos. ${filter.kind==="edge"?"El signo se conserva: azul es positivo y naranja es negativo.":"El valor se visualiza como intensidad en el mapa."}</p>`;
+  }
+  function renderSecondDetail(){
+    if(!firstLayerComplete()){$("secondCalculation").innerHTML="Completa primero la capa 1 y MaxPool. Después podrás animar los dos filtros de la capa 2 en paralelo.";return}
+    const filter=secondFilters[selectedSecond],shown=Math.max(0,Math.min(secondPosition-1,SECOND_OUT*SECOND_OUT-1)),x=shown%SECOND_OUT,y=Math.floor(shown/SECOND_OUT),partials=[0,1,2].map(channel=>{let sum=0;for(let ky=0;ky<3;ky++)for(let kx=0;kx<3;kx++)sum+=pooledOutputs[channel][(y+ky)*POOLED+x+kx]*filter.weights[channel*9+ky*3+kx];return sum}),result=partials.reduce((a,b)=>a+b,filter.bias);
+    $("secondCalculation").innerHTML=`<p><strong>${filter.name}</strong> en salida <code>(${y}, ${x})</code>. La misma ventana 3 × 3 se toma de los tres mapas reducidos.</p><code>canal 1: ${fmt(partials[0])}\ncanal 2: ${fmt(partials[1])}\ncanal 3: ${fmt(partials[2])}\nsesgo: ${fmt(filter.bias)}\nresultado: ${fmt(partials[0])} + ${fmt(partials[1])} + ${fmt(partials[2])} + ${fmt(filter.bias)} = ${fmt(result)}</code><p>Los tres resultados parciales se suman: por eso este filtro tiene profundidad <strong>3 × 3 × 3</strong>.</p>`;
+  }
+  function step(){
+    if(position>=OUT*OUT){pause();$("status").textContent=`La animación ${animateEvery?"simultánea de los filtros":`de ${filters[selected].name}`} terminó: se calcularon ${OUT*OUT} posiciones.`;return;}
+    const advance=+$('stepsPerFrame').value,nextPosition=Math.min(OUT*OUT,position+advance);
+    if(animateEvery)knownByFilter=knownByFilter.map(()=>nextPosition);else knownByFilter[selected]=nextPosition;
+    position=nextPosition;refreshVisuals(!animateEvery);renderDetail();
+    if(position>=OUT*OUT){pause();$("status").textContent=`La animación ${animateEvery?"simultánea de los filtros":`de ${filters[selected].name}`} terminó: se calcularon ${OUT*OUT} posiciones.`;}
+  }
+  function animate(all=false){if(running)return;animateEvery=all;if(position>=OUT*OUT){position=0;if(all)knownByFilter=filters.map(()=>0);else knownByFilter[selected]=0}running=true;$("animate").disabled=true;$("animateAll").disabled=true;$("pause").disabled=false;$("status").textContent=`Animando ${all?"todos los filtros al mismo tiempo":filters[selected].name}: ${$("stepsPerFrame").value} posiciones por cuadro, cada ${$("speed").value} ms.`;step();if(running)timer=setInterval(step,+$("speed").value)}
+  function firstLayerComplete(){return knownByFilter.every(value=>value===OUT*OUT)}
+  function stepSecond(both=true){
+    if(!firstLayerComplete()){$("status").textContent="Primero completa los tres mapas y MaxPool de la capa 1. Usa «Animar todos» o «Aplicar todos».";pause();return}
+    if(secondPosition>=SECOND_OUT*SECOND_OUT){pause();$("status").textContent="La segunda convolución terminó: se crearon los dos mapas 45 × 45.";return}
+    const advance=+$('stepsPerFrame').value,next=Math.min(SECOND_OUT*SECOND_OUT,secondPosition+advance);
+    if(both)knownBySecond=knownBySecond.map(()=>next);else knownBySecond[selectedSecond]=next;
+    secondPosition=next;refreshVisuals();renderSecondDetail();
+    if(secondPosition>=SECOND_OUT*SECOND_OUT){pause();$("status").textContent="La segunda convolución terminó: se crearon los dos mapas 45 × 45.";}
+  }
+  function animateSecond(){if(secondRunning)return;pause();if(!firstLayerComplete()){$("status").textContent="Completa primero la capa 1 y MaxPool para animar la capa 2.";return}if(secondPosition>=SECOND_OUT*SECOND_OUT){secondPosition=0;knownBySecond=secondFilters.map(()=>0)}secondRunning=true;$("pause").disabled=false;$("status").textContent=`Animando los dos filtros de la capa 2: ${$("stepsPerFrame").value} posiciones por cuadro.`;stepSecond(true);if(secondRunning)secondTimer=setInterval(()=>stepSecond(true),+$("speed").value)}
+  function pause(){running=false;secondRunning=false;if(timer)clearInterval(timer);if(secondTimer)clearInterval(secondTimer);timer=null;secondTimer=null;$("animate").disabled=false;$("animateAll").disabled=false;$("pause").disabled=true;}
+  function loadImage(file){const reader=new FileReader();reader.onload=event=>{const img=new Image();img.onload=()=>{const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");canvas.width=canvas.height=SIZE;ctx.drawImage(img,0,0,SIZE,SIZE);const pixels=ctx.getImageData(0,0,SIZE,SIZE).data;for(let i=0;i<input.length;i++)input[i]=(.299*pixels[i*4]+.587*pixels[i*4+1]+.114*pixels[i*4+2])/255;recompute(false);$("status").textContent=`Imagen cargada y reducida a ${SIZE} × ${SIZE}. Los mapas están ocultos hasta ejecutar la convolución.`};img.src=event.target.result};reader.readAsDataURL(file)}
+  function enablePan(element){let startX,startY,left,top,drag=false;element.addEventListener("pointerdown",event=>{if(event.button!==0)return;startX=event.clientX;startY=event.clientY;left=element.scrollLeft;top=element.scrollTop;drag=true;element.setPointerCapture(event.pointerId)});element.addEventListener("pointermove",event=>{if(!drag)return;element.classList.add("is-panning");element.scrollLeft=left-(event.clientX-startX);element.scrollTop=top-(event.clientY-startY)});["pointerup","pointercancel"].forEach(type=>element.addEventListener(type,event=>{drag=false;element.classList.remove("is-panning");if(element.hasPointerCapture(event.pointerId))element.releasePointerCapture(event.pointerId)}))}
+  function refreshFilterSelect(){const select=$("filterSelect");select.innerHTML="";filters.forEach((filter,i)=>{const option=document.createElement("option");option.value=i;option.textContent=filter.name;select.append(option)});select.value=selected}
+  function randomizeFilters(){pause();filters.forEach(filter=>Object.assign(filter,{kind:"edge",weights:randomWeights(),description:"Pesos iniciales aleatorios: aún no representan un patrón aprendido."}));secondFilters.forEach(filter=>Object.assign(filter,{weights:randomWeights(27),bias:randomWeight()}));refreshFilterSelect();recompute(false);$("status").textContent="Filtros de ambas capas recreados con nuevos pesos aleatorios. Los mapas están ocultos: anímalos o aplícalos para descubrir sus respuestas."}
+  function applyZoom(value){const zoom=Math.max(55,Math.min(150,+value)),scale=zoom/100,sizer=$("diagramSizer"),diagram=$("diagram");$("diagramZoom").value=zoom;$("zoomValue").textContent=`${zoom}%`;sizer.style.width=`${3500*scale}px`;sizer.style.height=`${3450*scale}px`;diagram.style.transform=`scale(${scale})`}
+  $("filterSelect").addEventListener("change",event=>selectFilter(+event.target.value));$("secondFilterSelect").addEventListener("change",event=>selectSecondFilter(+event.target.value));$("imageFile").addEventListener("change",event=>{if(event.target.files[0]){pause();loadImage(event.target.files[0])}});$("example").addEventListener("click",()=>{pause();makeExample();$("status").textContent="Figura de ejemplo lista. Los mapas están ocultos hasta ejecutar la convolución."});$("randomize").addEventListener("click",randomizeFilters);$("animate").addEventListener("click",()=>animate(false));$("animateAll").addEventListener("click",()=>animate(true));$("animateSecond").addEventListener("click",animateSecond);$("pause").addEventListener("click",pause);$("next").addEventListener("click",()=>{pause();animateEvery=false;if(position>=OUT*OUT){position=0;knownByFilter[selected]=0}step()});$("nextSecond").addEventListener("click",()=>{pause();if(!firstLayerComplete()){$("status").textContent="Completa primero la capa 1 y MaxPool para avanzar en la capa 2.";return}if(secondPosition>=SECOND_OUT*SECOND_OUT){secondPosition=0;knownBySecond[selectedSecond]=0}stepSecond(false)});$("applyAll").addEventListener("click",()=>{pause();knownByFilter=filters.map(()=>OUT*OUT);position=OUT*OUT;refreshVisuals();renderDetail();renderSecondDetail();$("status").textContent="Capa 1 y MaxPool completos. Ya puedes animar la capa 2."});$("diagramZoom").addEventListener("input",event=>applyZoom(event.target.value));$("zoomOut").addEventListener("click",()=>applyZoom(+$("diagramZoom").value-5));$("zoomIn").addEventListener("click",()=>applyZoom(+$("diagramZoom").value+5));$("zoomReset").addEventListener("click",()=>applyZoom(100));enablePan($("diagramWrap"));refreshFilterSelect();makeExample();applyZoom(100);
+})();
+</script>
+</body>
+</html>
